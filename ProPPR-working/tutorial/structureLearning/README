@@ -1,0 +1,268 @@
+# Introduction to Structure Learning in ProPPR
+
+In this tutorial you will learn:
+
+* how to be Really Clever with ProPPR features
+* `proppr` syntax for structure learning
+
+This tutorial assumes you are familiar with ProPPR terminology and file types. If you're brand new to ProPPR, you will want to look over the `textcat` and `labelprop` tutorials.
+
+## Step 0: Install ProPPR and set up your path
+
+If you haven't already,
+
+    $ git clone git@github.com:TeamCohen/ProPPR.git
+    $ cd ProPPR
+    $ ant clean build
+    
+& then if you're using a new shell,
+    
+    $ cd ProPPR
+    $ . init.sh
+    
+We'll be working out of the `tutorials/structureLearning` directory.
+
+## Step 1: Defining the task
+
+We'll be building a ProPPR dataset for automatically extracting structural patterns in a knowledge base, using the method described in *Structure Learning via Parameter Learning* (Wang, Mazaitis, & Cohen, CIKM'14). This tutorial will focus on a simple knowledge base completion task. Our database will describe a family tree where some relations have been removed. These relations will then be queried, with ProPPR recovering the data through other structural information in the knowledge base.
+
+The particular way we express a structure learning task in ProPPR is a bit abstract if you've never encountered abductive second-order logic before (and perhaps even if you have), so we'll go slow.
+
+## Step 2: Building the database
+
+### Step 2.1: Generating the base KB
+
+First, we'll generate the complete family record. We don't know which relations might be easier or harder to recover yet, so we'll leave that to a later script.
+
+The database for this task is extremely simple: each fact expresses a relationship between two people in a family tree. We restrict our vocabulary to the 12 relations *wife*, *husband*, *mother*, *father*, *daughter*, *son*, *sister*, *brother*, *aunt*, *uncle*, *niece*, and *nephew*. We'll generate 2 families and use one for training and the other for testing.
+
+Our training family looks like this:
+
+    aunt        jennifer        charlotte
+    aunt        jennifer        colin
+    aunt        margaret        charlotte
+    aunt        margaret        colin
+    brother     arthur  victoria
+    brother     colin   charlotte
+    brother     james   jennifer
+    daughter    charlotte       james
+    daughter    charlotte       victoria
+    daughter    jennifer        andrew
+    ...
+
+Our testing family looks like this:
+
+    aunt        angela  alfonso
+    aunt        gina    alfonso
+    aunt        gina    sophia
+    brother     alfonso sophia
+    brother     emilio  lucia
+    brother     marco   angela
+    daughter    angela  pierro
+    daughter    lucia   maria
+    daughter    lucia   roberto
+    daughter    sophia  lucia
+    ...
+
+These relations should be read as "*arg1* is the *relation* of *arg2*", so that Angela is the aunt of Alfonso and not the other way around.
+
+We've put the facts for both families in the file `kinship.cfacts`.
+
+Structure learning is a 2nd-order procedure, meaning that we want to reason over the relations themselves: what does "aunt" mean, and can we express it in terms of other relations? etc. To do this in ProPPR, we need to lift the family facts into the 2nd-order space. Thankfully, the `proppr` utility will do this for us:
+
+    $ proppr sl-lift kinship.cfacts kinship-2nd.cfacts
+    INFO:root:ProPPR v2
+    INFO:root:calling: python ${PROPPR}/scripts/proppr-helpers/structured-gradient.py --com lift --src kinship.cfacts --dst kinship-2nd.cfacts +
+    INFO:root:second-order version of facts from kinship.cfacts stored in kinship-2nd.cfacts
+    splitting by [] opts []
+    targetArgs []
+    otherArgs []
+    
+    $ head kinship-2nd.cfacts
+    rel aunt    jennifer        charlotte
+    rel aunt    jennifer        colin
+    rel aunt    margaret        charlotte
+    rel aunt    margaret        colin
+    rel brother arthur  victoria
+    rel brother colin   charlotte
+    rel brother james   jennifer
+    rel daughter        charlotte       james
+    rel daughter        charlotte       victoria
+    rel daughter        jennifer        andrew
+
+We've split off the 2nd-order training and test facts into `kinship-train.cfacts` and `kinship-test.cfacts` respectively.
+
+So what do the queries look like? For the training and testing examples, we'll include a query for each *(relation,person)* pair in the database, with positive labels for the correct facts. For negative labels, we'll first see if the query's *person* participates in any facts other than the query's *relation*, then add those non-*relation* person-person pairs to the negative set.
+
+For example, let's generate the labels for a query which asks of whom Jennifer is the aunt. We'll use the `grep` utility to print out only those facts that Jennifer participates in, to make it easier to identify (by hand) just the facts for which Jennifer is the first argument.
+
+    $ grep "jennifer" kinship-train.cfacts
+    rel	aunt	jennifer	charlotte
+    rel	aunt	jennifer	colin
+    rel	brother	james	jennifer
+    rel	daughter	jennifer	andrew
+    rel	daughter	jennifer	christine
+    rel	father	andrew	jennifer
+    rel	husband	charles	jennifer
+    rel	mother	christine	jennifer
+    rel	nephew	colin	jennifer
+    rel	niece	charlotte	jennifer
+    rel	wife	jennifer	charles
+
+The positive labels, then, should be for Y=charlotte and colin, since Jennifer is their aunt. The negative labels should be for Y=andrew, christine, and charles, since Jennifer is something to them, but not their aunt.
+
+If we proceed that way for every *(relation,person)* pair in the training set, we end up with the file `kinship-train.examples`. The lines are a bit long for a true sample, but hopefully you get the idea:
+
+    interp(i_aunt,andrew,Y) -interp(i_aunt,andrew,christine)	-interp(i_aunt,andrew,james)...
+    interp(i_aunt,arthur,Y)	-interp(i_aunt,arthur,charlotte)	-interp(i_aunt,arthur,penelope)...
+    interp(i_aunt,charles,Y)	-interp(i_aunt,charles,charlotte)	-interp(i_aunt,charles,jennifer)...
+    interp(i_aunt,charlotte,Y)	-interp(i_aunt,charlotte,james)	-interp(i_aunt,charlotte,charles)...
+    interp(i_aunt,christine,Y)	-interp(i_aunt,christine,james)	-interp(i_aunt,christine,jennifer)...
+    interp(i_aunt,christopher,Y)	-interp(i_aunt,christopher,arthur)...
+    interp(i_aunt,colin,Y)	-interp(i_aunt,colin,charlotte)	-interp(i_aunt,colin,james)...
+    interp(i_aunt,james,Y)	-interp(i_aunt,james,charlotte)	-interp(i_aunt,james,christine)...
+    interp(i_aunt,jennifer,Y)	+interp(i_aunt,jennifer,charlotte)	+interp(i_aunt,jennifer,colin)...
+    interp(i_aunt,margaret,Y)	+interp(i_aunt,margaret,charlotte)	+interp(i_aunt,margaret,colin)...
+    ...
+
+First, you'll notice that instead of the raw relation names like `aunt` we've used extended names like `i_aunt`. This is to make it easier to trace how learned structures progress, later on.
+
+Second, many of the queries have no positive examples; some of these cases are common gender-exclusions (Charles is no one's wife) and some are relations that just happen to be empty for this set (Colin has no children). Older versions of ProPPR had a problem with queries without both positive and negative examples; support for singly-flavored labeled examples started with v2.0.
+
+We perform the same procedure for the test family, resulting in the file `kinship-test.examples`.
+
+### Step 2.2: Generating incomplete KBs
+
+We happen to know from experiments that competing tools are particularly bad at recovering complimentary pairs of relations when both are missing, such as husband/wife, sister/brother, etc. For this tutorial, we will remove husband/wife; you can easily repeat the experiment for other pairs (or any relation or set or relations).
+
+First we can generate database files which are missing the husband/wife information:
+
+    $ grep -v -e "husband" -e "wife" kinship-train.cfacts > k_spouse-train.cfacts
+    $ grep -v -e "husband" -e "wife" kinship-test.cfacts > k_spouse-test.cfacts
+
+Then we'll generate examples files which include only the husband/wife queries:
+
+    $ grep -e "husband" -e "wife" kinship-train.examples > k_spouse-train.examples
+    $ grep -e "husband" -e "wife" kinship-test.examples > k_spouse-test.examples
+
+## Step 3: Understanding the standard structure-learning rules file
+
+We're going to use an abductive program to learn alternate pathways through the KB that express the missing husband/wife relationship. To make that work, the features of our logic program must themselves represent first-order clauses. During the learning step, we will use the gradient of each of those features as an indicator of which clauses are the most useful in expressing the missing relationships.
+
+We support three first-order clauses in the features of our program:
+
+ * `if(P,R)` meaning, *P(X,Y) :- R(X,Y)*
+ * `ifInv(P,R)`  meaning, *P(X,Y) :- R(Y,X)*
+ * `chain(P,R1,R2)`  meaning, *P(X,Y) :- R1(X,Z),R2(Z,Y)*
+
+Each of these clauses corresponds to a pair of rules for answering a query of the form `interp(someP,someX,Yunknown)`:
+
+    interp(P,X,Y)  :- rel(R,X,Y), abduce_if(P,R) {fixedWeight}.
+    abduce_if(P,R) :- { if(P,R) }.
+    
+    interp(P,X,Y) :- rel(R,Y,X),abduce_ifInv(P,R) {fixedWeight}.
+    abduce_ifInv(P,R) :- { ifInv(P,R) }.
+    
+    interp(P,X,Y) :- rel(R1,X,Z),rel(R2,Z,Y),abduce_chain(P,R1,R2) {fixedWeight}.
+    abduce_chain(P,R1,R2) :- { chain(P,R1,R2) }.
+
+Here we're using the `fixedWeight` feature keyword to tell ProPPR not to train the links generated by the `interp` rules.
+
+The general procedure for each pair is to use `rel` lookups to find the possible values for `Y`, that is, anyone directly related to `X` regardless of the relationship. Then we keep the relationship value(s) `R` and train whether that clause successfully simulates `P`.
+
+These six rules have been stored in the file `sg-interp-train.ppr`. The `proppr` utility will automatically give you a copy when you use the structure-learning toolkit.
+
+## Step 4: Using structure learning to generate new rules
+
+Next, we want to run the program above, and convert the top-ranked features to rules. This used to be a fussy and complicated process, but now we have a macro that does it for you. `sl-train1` will make sure you have a copy of `sg-interp-train.ppr`, compile the program, ground the queries, compute the gradient, take the features with the largest gradient, and output a new rules file. Whew!
+
+    $ proppr sl-train1 k_spouse-train.examples k_spouse-train.cfacts
+    INFO:root:ProPPR v2
+    INFO:root:calling: python ${PROPPR}/scripts/proppr-helpers/structured-gradient.py --com sg-train --src k_spouse-train.examples --dst k_spouse-train-learned1.ppr --src2 k_spouse-train.cfacts --stem k_spouse-train +
+    INFO:root:copied ${PROPPR}/scripts/proppr-helpers/sg-interp-train.ppr to current directory
+    INFO:root:calling: ${PROPPR}/scripts/proppr compile sg-interp-train.ppr
+    INFO:root:ProPPR v2
+    INFO:root:subprocess call options: {'stdout': <open file 'sg-interp-train.wam', mode 'w' at 0x7f47e9a3e150>}
+    INFO:root:calling: python ${PROPPR}/src/scripts/compiler.py serialize sg-interp-train.ppr
+    INFO:root:compiled sg-interp-train.ppr to sg-interp-train.wam
+    INFO:root:calling: ${PROPPR}/scripts/proppr ground k_spouse-train.examples k_spouse-train.examples.grounded --programFiles sg-interp-train.wam:k_spouse-train.cfacts --ternaryIndex true
+    INFO:root:ProPPR v2
+    INFO:root:calling: java -cp .:${PROPPR}/conf/:${PROPPR}/bin:${PROPPR}/lib/* edu.cmu.ml.proppr.Grounder --queries k_spouse-train.examples --grounded k_spouse-train.examples.grounded --ternaryIndex true --programFiles sg-interp-train.wam:k_spouse-train.cfacts --fixedWeight fixedWeight
+    Unrecognized option: --fixedWeight
+     INFO [Grounder] Resetting grounding statistics...
+    ...
+
+When it's done, the resulting generated rules will be in a file called `k_spouse-train-learned1.ppr`:
+
+    $ head k_spouse-train-learned1.ppr
+    interp(i_wife,X,Y) :- rel(mother,X,Z), rel(daughter,Z,Y) {lr_chain(i_wife,mother,daughter)}.
+    interp(i_husband,X,Y) :- rel(father,X,Z), rel(son,Z,Y) {lr_chain(i_husband,father,son)}.
+    interp(i_husband,X,Y) :- rel(father,X,Z), rel(daughter,Z,Y) {lr_chain(i_husband,father,daughter)}.
+    interp(i_husband,X,Y) :- rel(uncle,X,Z), rel(niece,Z,Y) {lr_chain(i_husband,uncle,niece)}.
+    interp(i_wife,X,Y) :- rel(aunt,X,Z), rel(niece,Z,Y) {lr_chain(i_wife,aunt,niece)}.
+    interp(i_wife,X,Y) :- rel(aunt,X,Z), rel(nephew,Z,Y) {lr_chain(i_wife,aunt,nephew)}.
+    interp(i_husband,X,Y) :- rel(uncle,X,Z), rel(nephew,Z,Y) {lr_chain(i_husband,uncle,nephew)}.
+    interp(i_wife,X,Y) :- rel(mother,X,Z), rel(son,Z,Y) {lr_chain(i_wife,mother,son)}.
+    interp(i_husband,X,Y) :- rel(mother,X,Z), rel(aunt,Z,Y) {lr_chain(i_husband,mother,aunt)}.
+    interp(i_wife,X,Y) :- rel(father,X,Z), rel(aunt,Z,Y) {lr_chain(i_wife,father,aunt)}.
+
+If we take a look a the first generated rule:
+
+    interp(i_wife,X,Y) :- rel(mother,X,Z), rel(daughter,Z,Y) {lr_chain(i_wife,mother,daughter)}.
+
+It should be read as, "Interpret X to be the 'wife' of Y if X is the mother of Y's daughter," which is pretty good!
+
+## Step 6: Using the generated rules to answer queries
+
+Now let's see how well our generated rules work in practice. `proppr` has another macro for this, which makes sure the program is compiled:
+
+    $ proppr sl-answer k_spouse-train.examples k_spouse-train.cfacts k_spouse-train-learned1.ppr
+    INFO:root:ProPPR v2
+    INFO:root:calling: ${PROPPR}/scripts/proppr compile k_spouse-train-learned1.ppr
+    INFO:root:ProPPR v2
+    INFO:root:subprocess call options: {'stdout': <open file 'k_spouse-train-learned1.wam', mode 'w' at 0x7fb1b9b6b150>}
+    INFO:root:calling: python ${PROPPR}/src/scripts/compiler.py serialize k_spouse-train-learned1.ppr
+    INFO:root:compiled k_spouse-train-learned1.ppr to k_spouse-train-learned1.wam
+    INFO:root:calling: ${PROPPR}/scripts/proppr answer k_spouse-train.examples k_spouse-train.solutions.txt --programFiles k_spouse-train-learned1.wam:k_spouse-train.cfacts --ternaryIndex true
+    INFO:root:ProPPR v2
+    INFO:root:calling: java -cp .:${PROPPR}/conf/:${PROPPR}/bin:${PROPPR}/lib/* edu.cmu.ml.proppr.QueryAnswerer --queries k_spouse-train.examples --solutions k_spouse-train.solutions.txt --ternaryIndex true --programFiles k_spouse-train-learned1.wam:k_spouse-train.cfacts --fixedWeight fixedWeight
+    Unrecognized option: --fixedWeight
+    
+    edu.cmu.ml.proppr.QueryAnswerer.QueryAnswererConfiguration
+          queries file: k_spouse-train.examples
+        solutions file: k_spouse-train.solutions.txt
+    Duplicate checking: up to 1000000
+               threads: -1
+                Prover: edu.cmu.ml.proppr.prove.DprProver
+    Squashing function: edu.cmu.ml.proppr.learn.tools.ClippedExp
+             APR Alpha: 0.1
+           APR Epsilon: 1.0E-4
+             APR Depth: 20
+    
+     INFO [QueryAnswerer] Running queries from k_spouse-train.examples; saving results to k_spouse-train.solutions.txt
+     INFO [QueryAnswerer] Executing Multithreading job: streamer: edu.cmu.ml.proppr.QueryAnswerer.QueryStreamer transformer: null throttle: -1
+     INFO [QueryAnswerer] Total items: 24
+    Query-answering time: 175
+    INFO:root:answers in k_spouse-train.solutions.txt
+    invokeMyself {'dryRun': False, 'out': ''} ('compile', 'k_spouse-train-learned1.ppr')
+    invokeMyself {'dryRun': False, 'out': ''} ('answer', 'k_spouse-train.examples', 'k_spouse-train.solutions.txt', '--programFiles', 'k_spouse-train-learned1.wam:k_spouse-train.cfacts', '--ternaryIndex', 'true')
+        
+    $ proppr eval k_spouse-train
+    INFO:root:ProPPR v2
+    INFO:root:calling: python ${PROPPR}/scripts/answermetrics.py --data k_spouse-train.examples --answers k_spouse-train.solutions.txt --metric map
+    queries 24 answers 52 labeled answers 10
+    ==============================================================================
+    metric map (MAP): The average precision after each relevant solution is retrieved
+    . micro: 1.0
+    . macro: 0.946781305115
+
+Not bad.
+
+
+## Concluding Remarks
+
+There's a lot more you can do with structure learning and ProPPR. The paper covers an iterative version, where you feed the generated rules back into the structure learner program and compute another gradient after training for an additional epoch. You can repeat this process, always training the gradient finder for one epoch further than last time, until the gradient doesn't return any more qualifying features. The iterated structure gradient is necessary for more complex datasets than our toy kinship one, and is covered by a separate macro, `sl-train` (as opposed to `train1`).
+
+You can also take the generated program, train it on the training data using `sl-tune`, and evaluate it on the testing examples. This lets ProPPR determine which generated rules are the most reliable.
+
+If you're at CMU, you can see an example of both of these techniques in the structureLearning regression test. Ask Katie for the path to the group share.

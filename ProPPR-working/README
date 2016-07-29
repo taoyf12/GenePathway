@@ -1,0 +1,480 @@
+For regular updates, subscribe to our google group at: https://groups.google.com/forum/#!forum/proppr
+
+==============
+2.0 QUICKSTART
+==============
+
+1. Write a rulefile as *.ppr:
+
+$ cat > test.ppr
+predict(X,Y) :- hasWord(X,W),isLabel(Y),related(W,Y)  {r}.
+related(W,Y) :- {w(W,Y)}.
+^D
+
+2. Compile a rulefile:
+
+$ python src/scripts/compile.py serialize test.ppr | tee test.wam
+0		comment	predict(-1,-2) :- hasWord(-1,-3), isLabel(-2), related(-3,-2) {r}  #v:['X', 'Y', 'W'].
+1	predict/2	allocate	3	['W', 'Y', 'X']
+2		initfreevar	-1	-2
+3		initfreevar	-2	-1
+4		fclear
+5		fpushstart	r	0
+6		freport
+7		pushboundvar	-1
+8		pushfreevar	-3
+9		callp	hasWord/2
+10		pushboundvar	-2
+11		callp	isLabel/1
+12		pushboundvar	-3
+13		pushboundvar	-2
+14		callp	related/2
+15		returnp
+16		comment	related(-1,-2) :-  {w(-1,-2)}  #v:['W', 'Y'].
+17	related/2	allocate	2	['Y', 'W']
+18		initfreevar	-1	-2
+19		initfreevar	-2	-1
+20		fclear
+21		fpushstart	w	2
+22		fpushboundvar	-1
+23		fpushboundvar	-2
+24		freport
+25		returnp
+
+3. Write arity-2 facts in a database file as *.graph:
+
+$ cat > test.graph
+hasWord	dh	a
+hasWord	dh	pricy
+hasWord	dh	doll
+hasWord	dh	house
+hasWord	ft	a
+hasWord	ft	little
+hasWord	ft	red
+hasWord	ft	fire
+hasWord	ft	truck
+hasWord	rw	a
+hasWord	rw	red
+hasWord	rw	wagon
+hasWord	sc	a
+hasWord	sc	pricy
+hasWord	sc	red
+hasWord	sc	sports
+hasWord	sc	car
+...
+^D
+
+4. Write arity-N facts in a database file as *.cfacts:
+
+$ cat > test.cfacts
+isLabel	neg
+isLabel	pos
+^D
+
+5. Write training examples:
+
+$ cat > test_train.data
+predict(dh,Y)	-predict(dh,neg)	+predict(dh,pos)
+predict(ft,Y)	-predict(ft,neg)	+predict(ft,pos)
+predict(rw,Y)	-predict(rw,neg)	+predict(rw,pos)
+predict(sc,Y)	-predict(sc,neg)	+predict(sc,pos)
+...
+^D
+
+6. Ground training examples:
+
+$ java -cp conf:bin:lib/* edu.cmu.ml.proppr.Grounder --programFiles test.wam:test.graph:test.cfacts --queries test_train.data --grounded test_train.grounded
+Time 461 msec
+Done.
+
+7. Train parameters:
+
+$ java -cp conf:bin:lib/* edu.cmu.ml.proppr.Trainer --train test_train.grounded --params test.wts
+ INFO [Trainer] edu.cmu.ml.proppr.util.ModuleConfiguration:
+  Walker: edu.cmu.ml.proppr.learn.L2PosNegLossTrainedSRW
+ Trainer: edu.cmu.ml.proppr.Trainer
+Weighting Scheme: edu.cmu.ml.proppr.learn.tools.ReLUWeightingScheme
+
+ INFO [Trainer] Training model parameters on test_train.grounded...
+ INFO [Trainer] epoch 1 ...
+ INFO [Trainer] epoch 2 ...
+ INFO [Trainer] epoch 3 ...
+ INFO [Trainer] epoch 4 ...
+ INFO [Trainer] epoch 5 ...
+ INFO [Trainer] Finished training in 650 ms
+ INFO [Trainer] Saving parameters to test.wts...
+
+8. Write testing examples:
+
+$ cat > test_testing.data 
+predict(pb,Y)	-predict(pb,neg)	+predict(pb,pos)
+predict(yc,Y)	-predict(yc,neg)	+predict(yc,pos)
+predict(rb2,Y)	-predict(rb2,neg)	+predict(rb2,pos)
+...
+^D
+
+9. Get untrained rankings:
+
+$ java -cp conf:bin:lib/* edu.cmu.ml.proppr.QueryAnswerer --programFiles test.wam:test.graph:test.cfacts --queries test_testing.data --solutions pre.testing.solutions.txt
+edu.cmu.ml.proppr.QueryAnswerer.QueryAnswererConfiguration:
+  Prover: edu.cmu.ml.proppr.prove.DprProver
+Weighting Scheme: edu.cmu.ml.proppr.learn.tools.ReLUWeightingScheme
+
+ INFO [QueryAnswerer] Running queries from test_testing.data; saving results to pre.testing.solutions.txt
+ INFO [QueryAnswerer] Querying: predict(pb,-1)  #v:[?].
+ INFO [QueryAnswerer] Writing 2 solutions...
+ INFO [QueryAnswerer] Querying: predict(yc,-1)  #v:[?].
+ INFO [QueryAnswerer] Writing 2 solutions...
+ INFO [QueryAnswerer] Querying: predict(rb2,-1)  #v:[?].
+ INFO [QueryAnswerer] Writing 2 solutions...
+ INFO [QueryAnswerer] Querying: predict(rp,-1)  #v:[?].
+ INFO [QueryAnswerer] Writing 2 solutions...
+ INFO [QueryAnswerer] Querying: predict(bp,-1)  #v:[?].
+ INFO [QueryAnswerer] Writing 2 solutions...
+ INFO [QueryAnswerer] Querying: predict(he,-1)  #v:[?].
+ INFO [QueryAnswerer] Writing 2 solutions...
+ INFO [QueryAnswerer] Querying: predict(wt,-1)  #v:[?].
+ INFO [QueryAnswerer] Writing 2 solutions...
+
+10. Measure untrained performance:
+
+$ python scripts/answermetrics.py --data test_testing.data --answers pre.testing.solutions.txt --metric mrr --metric recall
+==============================================================================
+metric mrr (Mean Reciprocal Rank): averages 1/rank for all positive answers
+. micro: 0.5
+. macro: 0.5
+. details:
+. .  predict(he,-1)  #v:[?]. 	0.5
+. .  predict(pb,-1)  #v:[?]. 	0.5
+. .  predict(yc,-1)  #v:[?]. 	0.5
+. .  predict(bp,-1)  #v:[?]. 	0.5
+. .  predict(rb2,-1)  #v:[?]. 	0.5
+. .  predict(wt,-1)  #v:[?]. 	0.5
+. .  predict(rp,-1)  #v:[?]. 	0.5
+==============================================================================
+metric recall (Recall): fraction of positive examples that are proposed as solutions anywhere in the ranking
+. micro: 1.0
+. macro: 1.0
+. details:
+. .  predict(he,-1)  #v:[?]. 	1.0
+. .  predict(pb,-1)  #v:[?]. 	1.0
+. .  predict(yc,-1)  #v:[?]. 	1.0
+. .  predict(bp,-1)  #v:[?]. 	1.0
+. .  predict(rb2,-1)  #v:[?]. 	1.0
+. .  predict(wt,-1)  #v:[?]. 	1.0
+. .  predict(rp,-1)  #v:[?]. 	1.0
+
+11. Get trained rankings (note --params; --solutions):
+
+$ java -cp conf:bin:lib/* edu.cmu.ml.proppr.QueryAnswerer --programFiles test.wam:test.graph:test.cfacts --queries test_testing.data --solutions post.testing.solutions.txt --params test.wts 
+edu.cmu.ml.proppr.QueryAnswerer.QueryAnswererConfiguration:
+  Prover: edu.cmu.ml.proppr.prove.DprProver
+Weighting Scheme: edu.cmu.ml.proppr.learn.tools.ReLUWeightingScheme
+
+ INFO [QueryAnswerer] Running queries from test_testing.data; saving results to post.testing.solutions.txt
+ INFO [QueryAnswerer] Querying: predict(pb,-1)  #v:[?].
+ INFO [QueryAnswerer] Writing 2 solutions...
+ INFO [QueryAnswerer] Querying: predict(yc,-1)  #v:[?].
+ INFO [QueryAnswerer] Writing 2 solutions...
+ INFO [QueryAnswerer] Querying: predict(rb2,-1)  #v:[?].
+ INFO [QueryAnswerer] Writing 2 solutions...
+ INFO [QueryAnswerer] Querying: predict(rp,-1)  #v:[?].
+ INFO [QueryAnswerer] Writing 2 solutions...
+ INFO [QueryAnswerer] Querying: predict(bp,-1)  #v:[?].
+ INFO [QueryAnswerer] Writing 2 solutions...
+ INFO [QueryAnswerer] Querying: predict(he,-1)  #v:[?].
+ INFO [QueryAnswerer] Writing 2 solutions...
+ INFO [QueryAnswerer] Querying: predict(wt,-1)  #v:[?].
+ INFO [QueryAnswerer] Writing 2 solutions...
+
+12. Measure trained performance:
+
+$ python scripts/answermetrics.py --data test_testing.data --answers post.testing.solutions.txt --metric mrr --metric recall
+==============================================================================
+metric mrr (Mean Reciprocal Rank): averages 1/rank for all positive answers
+. micro: 1.0
+. macro: 1.0
+. details:
+. .  predict(he,-1)  #v:[?]. 	1.0
+. .  predict(pb,-1)  #v:[?]. 	1.0
+. .  predict(yc,-1)  #v:[?]. 	1.0
+. .  predict(bp,-1)  #v:[?]. 	1.0
+. .  predict(rb2,-1)  #v:[?]. 	1.0
+. .  predict(wt,-1)  #v:[?]. 	1.0
+. .  predict(rp,-1)  #v:[?]. 	1.0
+==============================================================================
+metric recall (Recall): fraction of positive examples that are proposed as solutions anywhere in the ranking
+. micro: 1.0
+. macro: 1.0
+. details:
+. .  predict(he,-1)  #v:[?]. 	1.0
+. .  predict(pb,-1)  #v:[?]. 	1.0
+. .  predict(yc,-1)  #v:[?]. 	1.0
+. .  predict(bp,-1)  #v:[?]. 	1.0
+. .  predict(rb2,-1)  #v:[?]. 	1.0
+. .  predict(wt,-1)  #v:[?]. 	1.0
+. .  predict(rp,-1)  #v:[?]. 	1.0
+
+
+
+==============================================
+ProPPR: PROGRAMMING WITH PERSONALIZED PAGERANK
+==============================================
+This is a Java package for using graph walk algorithms to perform inference tasks over local groundings of first-order logic programs. The package makes use of parallelization to substantially speed processing, making it practical even for large databases.
+
+Contents:
+1. Build
+2. Run
+   2.0. Overview of Java main() classes
+        2.0.0. Grounder: Construct a proof graph for each query
+	2.0.1. Trainer: Train feature weights on the proof graphs
+	2.0.2. QueryAnswerer: Generate [un]trained ranked candidate solutions for queries
+   2.1. Utilities
+   	2.1.0. compiler.py: Convert ProPPR rulefiles (.ppr) to WAM instructions (.wam)
+        2.1.1. answermetrics.py: Measure performance
+	2.1.2. sparseGraphTools: Construct memory- and CPU-efficient ProPPR databases
+3. Use
+   3.0. Developing a ProPPR program and database
+   3.1. Typical workflow for experiments
+
+1. BUILD
+========
+
+ProPPR $ ant clean build
+
+
+2. RUN
+======
+
+For all run phases, control logging output using conf/log4j.properties.
+
+
+2.0. RUN: JAVA MAIN CLASSES
+===========================
+
+edu.cmu.ml.proppr.Grounder
+edu.cmu.ml.proppr.Trainer
+edu.cmu.ml.proppr.QueryAnswerer
+
+
+2.0.0. RUN: MAIN CLASSES: GROUNDER
+==================================
+
+$ java -cp conf:bin:lib/* edu.cmu.ml.proppr.Grounder --queries \
+        inputFile --grounded outputFile.grounded --programFiles \
+        file.wam:file.cfacts:file.graph [--ternaryIndex true|false] \
+        [--threads integer] [--prover ppr[:depth] | \
+        dpr[:eps[:alph[:strat]]] | tr[:depth] ]
+
+Grounder will read the list of queries from inputFile, the WAM program
+from file.wam, and the various database plugin files file.cfacts and
+file.graph, and produce the proof graph for each query in
+outputFile.grounded.
+
+Optional parameters: 
+
+ * If your database contains facts of arity 3 or more, use
+`--ternaryIndex true` to spend some memory and increase the speed of
+lookups.
+
+ * If you are on a multi-core machine, set --threads up to (#cores-2)
+to ground queries in parallel (one thread is used as the controller,
+one for writing output, and the others are worker threads).
+
+ * The default prover is dpr:1e-4:0.1, which will fail in graphs with
+a maximum out degree >10. Reduce alpha to 1/(max out degree) to suit
+your dataset.
+
+
+2.0.1. RUN: MAIN CLASSES: TRAINER
+====================================
+
+$ java -cp conf:bin:lib/* edu.cmu.ml.proppr.Trainer --train inputFile.grounded
+        --params outputFile [--threads integer] [--epochs integer]
+        [--traceLosses] [--force] [--weightingScheme linear | sigmoid
+        | tanh | ReLU | exp]
+
+Trainer will read the grounded proof graphs from inputFile.grounded, then perform stochastic gradient descent to optimize the weights assigned to the edge labels, storing the resulting parameter vector in outputFile.
+
+Optional arguments:
+
+ * If you are on a multicore machine, specify --threads up to (#cores-2) and ProPPR will process examples in parallel (1 controller thread, 1 thread for managing output, N worker threads). Training is threadsafe, but currently (fall 2014) programs with a small number of non-db features (or a large number of db lookups) may experience reduced parallelization speedup due to resource contention.
+
+* Increase or decrease the number of training iterations using --epochs.
+
+* Turn on --traceLosses to view a readout of log loss and regularization loss every epoch.
+
+* Turn on --force to use different settings for training than were used for grounding (not recommended unless you know what you're doing)
+
+* Set --weightingScheme to your desired wrapper function, controlling how the weight of an edge is computed from its features.
+
+
+2.2. RUN: UTILITIES
+===================
+
+2.2.0. RUN: UTILITIES: QUERYANSWERER
+====================================
+
+If you want to use a program to answer a series of queries, you can
+use the QueryAnswerer class.  If you are running this step you should
+already have a compiled program and a file containing a list of
+queries, one per line.  Each query is a single goal.
+
+ProPPR $ cat testcases/family.queries
+sim(william,X)
+sim(rachel,X)
+
+ProPPR $ java edu.cmu.ml.proppr.QueryAnswerer \
+  --programFiles testcases/family.cfacts:testcases/family.crules \
+  --queries testcases/family.queries --output answers.txt
+ INFO [Component] Loading from file 'testcases/family.cfacts' with alpha=0.0 ...
+ INFO [Component] Loading from file 'testcases/family.crules' with alpha=0.0 ...
+
+ProPPR $ cat answers.txt
+# proved	sim(william,-1)	47 msec
+1	0.8838968104504825	-1=c[william]
+2	0.035512510088781264	-1=c[lottie]
+3	0.035512510088781264	-1=c[rachel]
+4	0.035512510088781264	-1=c[sarah]
+5	0.002391414820793351	-1=c[poppy]
+6	0.0017935611155950133	-1=c[lucas]
+7	0.0017935611155950133	-1=c[charlotte]
+8	0.0017935611155950133	-1=c[caroline]
+9	0.0017935611155950133	-1=c[elizabeth]
+# proved	sim(rachel,-1)	18 msec
+1	0.9094251636624519	-1=c[rachel]
+2	0.0452874181687741	-1=c[caroline]
+3	0.0452874181687741	-1=c[elizabeth]
+
+
+2.2.1. RUN: UTILITIES: PROMPT
+=============================
+
+An interactive prompt can be useful while debugging logic program issues, because you can examine a single query in detail. If you are running this step you should already have a compiled program.
+
+Starting up the prompt:
+
+"""
+ProPPR $ java -cp conf/:bin/:lib/* edu.cmu.ml.proppr.prove.Prompt --programFiles ${PROGRAMFILES%:}
+Starting up beanshell...
+prv set: edu.cmu.ml.proppr.prove.TracingDfsProver@57fdc2d
+ INFO [Component] Loading from file 'kbp_prototype/doc.crules' with alpha=0.0 ...
+ INFO [Component] Loading from file 'kbp_prototype/kb.cfacts' with alpha=0.0 ...
+ INFO [Component] Loading from file 'kbp_prototype/lp_predicate_SF_ENG_001-50doc.graph' with alpha=0.0 ...
+lp set: edu.cmu.ml.proppr.prove.LogicProgram@2225a091
+
+Type 'help();' for help, 'quit();' to quit; 'list();' for a variable listing.
+
+BeanShell 2.0b4 - by Pat Niemeyer (pat@pat.net)
+bsh % 
+"""
+
+When it starts up, Prompt instantiates the logic program from the command line as 'lp', and a default prover which prints a depth-first-search-style proof of a query (default maximum depth is 5). You can specify a different prover on the command line if you wish. For information on built-in commands and interpreter syntax, type 'help();':
+
+"""
+bsh % help();
+This is a beanshell, a command-line interpreter for java. A full beanshell manual is available at <http://www.beanshell.org/manual/contents.html>.
+
+Type java statements and expressions at the prompt. Don't forget semicolons.
+
+Type 'help();' for help, 'quit();' to quit; 'list();' for a variable listing.
+
+'show();' will toggle automatic printing of the results of expressions. Otherwise you must use 'print( expr );' to see results.
+
+'javap( x );' will list the fields and methods available on an object. Be warned; beanshell has trouble locating methods that are only defined on the superclass.
+
+'[sol = ]run(prover,logicprogram,"functor(arg,arg,...,arg)")' will prove the associated state.
+
+'pretty(sol)' will list solutions first, then intermediate states in descending weight order.
+
+bsh %
+"""
+ 
+
+3. FILE FORMATS
+===============
+
+****** File format: *.rules
+
+Example:
+predict(X,Y) :- hasWord(X,W),isLabel(Y),related(W,Y)  #r.
+related(W,Y) :- # w(W,Y).
+
+Grammar:
+    line= rhs ':-' lhs ('#' featureList)? '.'
+    rhs= goal
+    lhs=
+      |= goal (',' goal)*
+    featureList=
+              |= goal (',' goal)*
+    goal= functor
+       |= functor '(' argList ')'
+    argList= constantArgList
+          |= variableArgList
+          |= constantArgList ',' variableArgList
+    constantArgList= constantArg (',' constantArg)*
+    variableArgList= variableArg (',' variableArg)*
+    constantArg= [a-z][a-zA-Z0-9]*
+    variableArg= [A-Z][a-zA-Z0-9]*
+    functor= [a-z][a-zA-Z0-9]*
+
+****** File format: *.facts
+
+Example:
+isLabel(pos)
+isLabel(neg)
+
+Grammar:
+    line= goal
+
+****** File format: *.graph
+
+Example:
+hasWord bk      punk
+hasWord bk      queen
+hasWord bk      barbie
+hasWord bk      and
+hasWord bk      ken
+hasWord rb      a
+hasWord rb      little
+hasWord rb      red
+hasWord rb      bike
+hasWord mv      a
+hasWord mv      big
+hasWord mv      7-seater
+hasWord mv      minivan
+hasWord mv      with
+hasWord mv      an
+hasWord mv      automatic
+hasWord mv      transmission
+hasWord hs      a
+hasWord hs      big
+hasWord hs      house
+hasWord hs      in
+hasWord hs      the
+hasWord hs      suburbs
+hasWord hs      with
+hasWord hs      crushing
+hasWord hs      mortgage
+
+Grammar:
+    line= edge '\t' sourcenode '\t' destnode
+    edge= functor
+    sourcenode,destnode= constantArg
+
+****** File format: *.data
+
+Example:
+predict(bk,Y)   -predict(bk,neg)        +predict(bk,pos)
+predict(rb,Y)   -predict(rb,neg)        +predict(rb,pos)
+predict(mv,Y)   +predict(mv,neg)        -predict(mv,pos)
+predict(hs,Y)   +predict(hs,neg)        -predict(hs,pos)
+
+Grammar:
+    line= query '\t' exampleList
+    query= goal
+    exampleList= example ('\t' example)*
+    example= positiveExample
+          |= negativeExample
+    positiveExample= '+' goal
+    negativeExample= '-' goal

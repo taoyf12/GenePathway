@@ -1,0 +1,202 @@
+Speedup thoughts:
+* most of time is in inferenceUpdate dealing with TIntDoubleMap's 
+  dNext[u][v][f] 
+  where u: dense node id; v is from node_near_lo[uid]...node_near_hi[uid]
+  and f is indexed from ex.dM_lo[u][v] ... ex.dM_hi[u][v] 
+
+  we could store the indices of the non-zero entries in dNext
+
+Small things to do:
+
+* Better documents (eg 'hard' rules, fixedWeight, escapes, ...) - see dorpbox
+
+* Fix compile scripts to run anywhere
+* Test for 'hard' rules and semantics for them
+* Demo problems/test problems
+* Empirical loss monitoring
+* Initialize params around zero (config file, maybe, not just params?)
+* Experiment with tanh*sqrt(double.max), sparse parameters
+
+*  hard clauses - syntax is implemented but I need to work out what
+   the semantics should be.  I think the idea would be to treat them
+   as links with weight=1, which means that the score of a parent
+   would be copied the child in 'push', and that in SRW, hard edges
+   would be treated specially when computing the weights.
+
+   Simplest implementation that might be correct: let the DprProver
+   check if a state's leading goal is 'hard' and if so, it makes some
+   special-case calls to the graphWriter (adding unit-weight edges,
+   with a special feature 'hardEdge', and no other features).  Then in
+   the SRW the 'hardEdge' edges are treated specially - they are given
+   unit weight, and the 'hardEdge' parameter cannot be tuned.
+
+* BFS apr-style inference using Hadoop?
+* Bottom up, forward inference? maybe via EBG-like approach
+** Get top-scoring proofs of existing positive facts
+*** Alternate: just get proofs with a large upper-bound on scores
+** Convert to DB pattern queries
+** Add instances of these queries to a pool and increment their sums...
+
+==============================================================================
+
+General Paradigm: think about coupling prediction tasks with inference
+
+eg: core SSL
+
+  predict(X,Y) :- pickLabel(Y), classify(X,Y).
+  classify(X,Y) :- { f(W,Y): feature(X,W) }
+  conflict(X) :- predict(X,Y1),mutex(Y1,Y2),classify(X,Y2).
+
+cotrain: add two feature sets
+
+  classify(X,Y) :- { f1(W,Y): feature1(X,W) }
+  classify(X,Y) :- { f2(W,Y): feature2(X,W) }
+
+Laplacian regularization: add
+
+  predict(X,Y) :- near(X,Z),predict(Z,Y).
+
+LP:
+
+  predict(X,Y) :- seed(X,Y).
+  predict(X,Y) :- near(X,Z),predict(Z,Y).
+
+Ontologies:
+
+  predict_l1(X,Y1) :- ... level 1 of ontology
+  predict_l2(X,Y1) :- ... level 2 of ontology
+
+  predict_l1(X,Y1) :- predict_l2(X,Y2),subset(Y2,Y1).  #inherit
+
+Joint learning paragraphs and relations:
+
+  predict_rel(XR,YR) :- 
+    inPara(X,XP),predict_par(XP,YP),pickLabel_rel(YR),ab_relIfpar(YR,YP).
+  ab_relIfpar(Y1,Y2) :- { relIfPar(Y1,Y2) }.
+
+Joint learning rules:
+
+  SL interpreter...
+
+Recommendation:
+
+  likes(U,I) :- predictCluster_u(U,Ku),predictCluster_i(I,Ki),ab_likes(Ku,Ki).
+  predictCluster_u(U,K) :- pickCluster_u(K),classifyCluster_u(U,K).
+  classifyCluster_u(U,K) :- { f1(U,K) }.
+  ...
+  # similar for _i
+
+  # feature-based clustering, rather than rote clustering
+  predictCluster_i(I,K) :- pickCluster_i(K),classifyCluster_i(I,K).
+  classifyCluster_i(I,K) :- { f(F,K) : feature(I,F) }.
+
+  # option: enforce single cluster per item/user
+  conflict_i(I) :- predictCluster_i(I,K1),mutex(K1,K2),classifyCluster_i(I,K2).
+
+  # option: use clusters to predict other relations, like:
+    directs(D,I), actsIn(D,I), highRevenue(R), ...
+
+  # could make cluster an unknown feature of items in a KB-completion
+  # type task.
+
+==============================================================================
+
+* Hinton's relations
+
+If I read it right he used BP on a two-hidden-layer net (arrows are
+complete connectivity between all units in a set, Subject, Relation,
+Object are localist representations (one node per person), and
+*Features is distributed/latent representation.
+
+ [Subject] ==> [SubjectFeatures]    \
+				     [ObjectFeatures] ==> [Object]
+ [Relation] ==> [RelationFeatures]  /
+
+Possible ProPPR implementation: 
+
+  subjectFeature(sf1) :- 
+  subjectFeature(sf2) :- 
+  ...
+  relationFeature(rf1) :-
+  ...
+  objectFeature(of1) :- 
+  ...
+
+  # each path picks a SF/RF/OF triple and pushes weights 
+  # for it up or down
+
+  predict(Subject,Relation,Object) :-
+    subjectFeature(SF), aHasSubjectFeature(Subject,SF),
+    relationFeature(RF), aHasRelationFeature(Relation,RF),
+    objectFeature(OF), aCompatible(SF,RF),
+    person(Object), aFeatureOfObject(OF,Object).
+
+  aHasSubjectFeature(Sub,SF) :- # sf(Sub,SF).
+  aHasRelationFeature(Rel,RF) :- # rf(Rel,RF).
+  aCompatible(SF,RF,OF) :- # compat(SF,RF,OF).
+  aFeatureOfObject(OF,Object) :- # of(Object,OF).
+
+* NELL and RiB in ProPPR
+
+  b(C,X) means "believe C(X)"
+  r(C,X,D) means "read C(X) in doc D"
+  learning is cyclic: seed beliefs ==> propagation/inference ==> training "classifier-abductive" theory ==> inference ==> more beliefs ==> training ... ==> ....
+
+Propagation/inference - NELL style, through label prop
+
+  b(C,X) :- sim(X,X'),b(C,X')
+  b(C,X) :- seed(C,X)
+
+Propagation/inference - NELL style, via ontology
+
+  b(C,X) :- domain(R,C), b(R, X/Y). 
+  b(C,Y) :- range(R,C), b(R, X/Y). 
+  b(C,X) :- subsetOf(C,C'),b(C',X).
+  b(R,X/Y) :- inverse(R,R'),b(R',Y/X).
+  b(R,X/X) :- reflective(C).
+  ...
+  % enforce negative constraints
+  conflict(X) :- b(C,X),mutex(C,C'),b(C',X).
+  conflict(X) :- b(R,X/X),irreflective(R).
+  ...
+
+Multi-view classifier-abductive theory for NELL:
+
+  b(C,X) :- isConcept(C), classifyAs(C,X).
+  classifyAs(C,X) :- classifyAsInView(C,X,cpl).
+  classifyAs(C,X) :- classifyAsInView(C,X,seal).
+  ...
+  classifyAsInView(C,X,V) :- # { f(F,C,V) : feature(V,X,F) }    
+
+Classifier-abductive micro-reading, where context(+X,+D,-T): groundedEntityOrEntityPair,docId -> context,
+using 
+
+  b(C,X) :- r(C,X,D). 
+  r(C,X,D) :- isConcept(C), contextFor(X,D,T), classifyAs(C,T).
+
+Distant-labeling via inference
+
+  r(C,X,D) :- b(C,X).
+  % force consistent interpretations
+  conflict(X,D) :- r(C,X,D),mutex(C,C'),r(C',X,D).
+  
+ISG discourse theory:
+
+  r(C,X,D) :- discourse(C,X,C',X'), r(C',X',D).
+  discourse(C,X,C',X) :-  # relatedConcepts(C,C').
+  discourse(C,X,C,X') :-  # relatedEntities(X,X').
+
+ISG/classifier-abductive theory for alignment to external database:
+
+  b(C,X) :- db(DB), align(C,X,C',X',DB), dbBelief(DB,C',X').
+  align(C,X,C',X') :- alignConcept(C,C',DB),alignEntity(X,X',DB).
+  alignConcept(C,C',DB) :- simToDBConcept(C,C',DB).
+  alignEntity(X,X',DB) :- simToDBEntity(X,X',DB).
+  alignConcept(C,C',DB) :- # ac(C,C',DB).
+  alignEntity(X,X',DB) :- # ae(X,X',DB).
+
+Propagation/inference theory for alignment to external databases:
+
+  alignConcept(C,C',DB) :- range(R,C),alignConcept(R,R',DB),range(R',C',DB).
+  ...
+

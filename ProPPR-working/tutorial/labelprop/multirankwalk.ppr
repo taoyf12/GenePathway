@@ -1,0 +1,18 @@
+# do a graph walk from seeds for label Y through any edges away from
+# Y, similar to Lin & Cohen's MultiRankWalk method, "Semi-Supervised
+# Classification of Network Data Using Very Few Labels" in
+# ASONAM-2010
+
+#naive version
+
+#predict(Y,X) :- seed(Y,X).
+#predict(Y,X) :- predict(Y,Z),edge(Z,X).
+
+#tail-recursive version
+
+predict(Y,X) :- seed(Y,Z),sim(Z,X).
+sim(X,X) :- .
+sim(X,W) :- edge(X,Z),sim(Z,W).
+
+
+

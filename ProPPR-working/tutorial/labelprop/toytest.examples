@@ -1,0 +1,2 @@
+predict(neg,X)	-predict(neg,test00004)	+predict(neg,test00007)	-predict(neg,test00001)	-predict(neg,test00003)	+predict(neg,test00005)	-predict(neg,test00002)	+predict(neg,test00006)
+predict(pos,X)	+predict(pos,test00004)	-predict(pos,test00007)	+predict(pos,test00001)	+predict(pos,test00003)	-predict(pos,test00005)	+predict(pos,test00002)	-predict(pos,test00006)
