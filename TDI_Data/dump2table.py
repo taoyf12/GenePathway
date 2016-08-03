@@ -12,7 +12,7 @@ PATH = '../TDI_dump/SGAs.sql'
 i = 0
 for line in open(PATH, 'r'):
     i += 1
-    if i >= 49:
+    if i >= 50:
         break
     values = line.split('),(')
     if 'INSERT INTO' in values[0]:
@@ -23,3 +23,4 @@ for line in open(PATH, 'r'):
         values[0] = tmp[1]
         for tmp1 in values:
         	print tmp1
+        print values[0]
