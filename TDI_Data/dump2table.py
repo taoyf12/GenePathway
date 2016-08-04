@@ -1,26 +1,28 @@
 # Extract data from dump file.
-# import sqlite3
-# conn = sqlite3.connect("db.sqlite")
 
-# PATH = '../TDI_dump/tbd.sql'
-# PATH_TO_FILE = '../TDI_dump/tbd.sql'
-# for line in open(PATH_TO_FILE):
-#     conn.cursor.execute(line)
 
 PATH = '../TDI_dump/tbd.sql'
+
+# sga_id to gen_id
+sgaid2genid = {}
 PATH = '../TDI_dump/SGAs.sql'
 i = 0
 for line in open(PATH, 'r'):
     i += 1
-    if i >= 50:
-        break
     values = line.split('),(')
     if 'INSERT INTO' in values[0]:
-    	#print 'length: {}'.format(len(values))
-        #print 'line: {}'.format(i)
+    	# modify first and last string in list.
         values[-1] = values[-1][:-3]
         tmp = values[0].split('(')
         values[0] = tmp[1]
-        for tmp1 in values:
-        	print tmp1
-        print values[0]
+        # val: 45009,181,3437,NULL,'TCGA-13-0751','CDH11'
+        for val in values:
+        	row = val.split(',')
+        	#print row[0], row[2]
+        	# TODO: row[2] can be NULL...?
+        	sgaid2genid[row[0]] = row[2]
+
+print len(sgaid2genid)
+for i in range(1,10):
+    print sgaid2genid['{}'.format(i)]
+
