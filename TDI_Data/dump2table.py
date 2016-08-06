@@ -52,6 +52,7 @@ def readSQL(path, pos_src, pos_dist):
     return src2dist
 
 def save2txt(path, table):
+    print 'saving to {}...'.format(path)
     f = open(path, 'w')
     for row in table:
         print >> f, '\t'.join(row)
@@ -74,14 +75,20 @@ if __name__ == '__main__':
     path_gen = '../TDI_dump/Genes.sql'
     genid2gen = readSQL(path_gen,0,1)
 
-    sga2deg = []
+    sga2deg = set()
     for row in sgaid2degid:
         sga_tmp = sgaid2genid[row[0]]
         deg_tmp = degid2genid[row[1]]
-        print row[0], sga_tmp
-        sga = genid2gen[sga_tmp]
-        deg = genid2gen[deg_tmp]
-        sga2deg.add([sga,deg])
-
+        #print row[0], sga_tmp
+        if sga_tmp == 'NULL':
+            continue
+        else:
+            sga = genid2gen[sga_tmp]
+            deg = genid2gen[deg_tmp]
+            sga2deg.add((sga,deg))
+            #sga2deg.append([sga,deg])
+    sga2deg = list(sga2deg)
+    print 'sorting...'
+    sga2deg = sorted(sga2deg, key = lambda item:(item[0], item[1]))
     path_sga2deg = 'sga2deg.txt'
     save2txt(path_sga2deg, sga2deg)
