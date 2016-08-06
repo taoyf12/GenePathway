@@ -24,6 +24,8 @@ def readTDI(path, pos_sga, pos_deg):
     print 'sorting...'
     sga2deg = sorted(sga2deg, key = lambda item:(int(item[0]),int(item[1])))
     print 'len(sga2deg) = {}'.format(len(sga2deg))
+    for i in range(0,10):
+        print sga2deg['{}\t{}'.format(sga2deg[i][0],sga2deg[i][1])] 
     return sga2deg
 
 
