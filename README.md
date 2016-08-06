@@ -1,5 +1,7 @@
 # GenePathway
 
-Nodes in pathway = 8,726 (8,659?)
+Nodes in pathway = 8,726 (actually 8,659 connected with each other)
 
-Directed edges in pathway = 505,900
+Directed edges = 155,900
+
+tdi pairs: 350,990
