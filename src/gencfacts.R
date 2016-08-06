@@ -1,9 +1,9 @@
-load('gadj.rda')
+load('../TDI_dump/gadj.rda')
 
 cn = colnames(gadj)
 rn = rownames(gadj)
 
-sink("pathway.cfacts")
+sink("../TDI_dump/pathway.cfacts")
 for (r in rn) {
   for (c in cn) {
     if (gadj[r,c] == 1) {
