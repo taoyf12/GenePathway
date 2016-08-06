@@ -1,4 +1,5 @@
 # Extract data from dump file.
+#sort -k 3g test5.txt > test6.txt
 
 def readTDI(path, pos_sga, pos_deg):
     '''
@@ -22,11 +23,8 @@ def readTDI(path, pos_sga, pos_deg):
     sga2deg = list(sga2deg)
     print 'sorting...'
     sga2deg = sorted(sga2deg, key = lambda item:(int(item[0]),int(item[1])))
-    print 'len(sga2deg) = {}'.format(len(sga2deg))
-    for i in range(0,10):
-        print '{}\t{}'.format(sga2deg[i][0],sga2deg[i][1])
+    print 'len = {}'.format(len(sga2deg))
     return sga2deg
-
 
 def readSQL(path, pos_src, pos_dist):
     print 'reading from: {}...'.format(path)
@@ -46,9 +44,7 @@ def readSQL(path, pos_src, pos_dist):
                 # TODO: row[2] can be NULL...?
                 src2dist[row[pos_src]] = row[pos_dist]
 
-    print len(src2dist)
-    for i in range(1,10):
-        print src2dist['{}'.format(i)]
+    print 'len = {}'.format(len(src2dist))
     return src2dist
 
 def save2txt(path, table):
@@ -61,9 +57,6 @@ def save2txt(path, table):
 if __name__ == '__main__':
     path_tdi = '../TDI_dump/TDI_Results.sql'
     sgaid2degid = readTDI(path_tdi,2,4)
-
-    path_sgaid2degid = 'sgaid2degid.txt'
-    save2txt(path_sgaid2degid, sgaid2degid)
 
     # sga_id to gen_id
     path_sga = '../TDI_dump/SGAs.sql'
@@ -85,10 +78,12 @@ if __name__ == '__main__':
         else:
             sga = genid2gen[sga_tmp]
             deg = genid2gen[deg_tmp]
-            sga2deg.add((sga,deg))
-            #sga2deg.append([sga,deg])
+            # TODO: lowever case?
+            # remove ''
+            sga2deg.add((sga[1:-1],deg[1:-1]))
     sga2deg = list(sga2deg)
     print 'sorting...'
     sga2deg = sorted(sga2deg, key = lambda item:(item[0], item[1]))
-    path_sga2deg = 'sga2deg.txt'
+
+    path_sga2deg = '../TDI_dump/sga2deg_large.txt'
     save2txt(path_sga2deg, sga2deg)
