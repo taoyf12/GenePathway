@@ -1,6 +1,5 @@
 # Extract data from dump file.
 
-
 def readTDI(path, pos_sga, pos_deg):
     '''
     This readTDI function simply deduplicate all the 
@@ -52,9 +51,18 @@ def readSQL(path, pos_src, pos_dist):
         print src2dist['{}'.format(i)]
     return src2dist
 
+def save2txt(path, table):
+    f = open(path, 'w')
+    for row in table:
+        print >> f, '\t'.join(row)
+    f.close()
+
 if __name__ == '__main__':
     path_tdi = '../TDI_dump/TDI_Results.sql'
-    sga2deg = readTDI(path_tdi,2,4)
+    sgaid2degid = readTDI(path_tdi,2,4)
+
+    path_sgaid2degid = 'sgaid2degid.txt'
+    save2txt(path_sgaid2degid, sgaid2degid)
 
     # sga_id to gen_id
     path_sga = '../TDI_dump/SGAs.sql'
@@ -66,4 +74,14 @@ if __name__ == '__main__':
     path_gen = '../TDI_dump/Genes.sql'
     genid2gen = readSQL(path_gen,0,1)
 
+    sga2deg = []
+    for row in sgaid2degid:
+        sga_tmp = sgaid2genid[row[0]]
+        deg_tmp = degid2genid[row[1]]
+        print row[0], sga_tmp
+        sga = genid2gen[sga_tmp]
+        deg = genid2gen[deg_tmp]
+        sga2deg.add([sga,deg])
 
+    path_sga2deg = 'sga2deg.txt'
+    save2txt(path_sga2deg, sga2deg)
