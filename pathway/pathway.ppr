@@ -1,15 +1,6 @@
 # pathway.ppr
-# pathTo(GeneA,GeneB) :- isDEG(GeneB)
-
-# pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneM),pathTo(GeneM,GeneB) #leadTo(GeneA,GeneB).
-# pathTo(GeneB,GeneB) :- .
-# pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneB),isDEG(GeneB).
-
-# pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneM),pathTo(GeneM,GeneB) #leadTo(GeneA,GeneM).
-# pathTo(GeneB,GeneB) :- .
-# pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneB),isDEG(GeneB),ab_leadTo(GeneA,GeneB).
 
 pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneM),pathTo(GeneM,GeneB),ab_leadTo(GeneA,GeneM).
-pathTo(GeneB,GeneB) :- ab_leadTo(GeneB,GeneB).
+pathTo(GeneB,GeneB) :- ab_leadTo(GeneB,GeneB). #bug
 pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneB),isDEG(GeneB),ab_leadTo(GeneA,GeneB).
 ab_leadTo(GeneA,GeneB) :- { f#(GeneA, GeneB, Weight) : leadTo#(GeneA,GeneB,Weight)}.
