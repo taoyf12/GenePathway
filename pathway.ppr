@@ -1,0 +1,6 @@
+# pathway.ppr
+# pathTo(GeneA,GeneB) :- isDEG(GeneB)
+
+pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneM),pathTo(GeneM,GeneB) #leadTo(GeneA,GeneB).
+pathTo(GeneB,GeneB) :- .
+
