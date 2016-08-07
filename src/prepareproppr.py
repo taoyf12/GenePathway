@@ -1,6 +1,7 @@
 # prepare the files required by ProPPR.
 from collections import defaultdict as dd
 import io
+from random import shuffle
 
 def save2txt(path, table):
     print 'saving to {}...'.format(path)
@@ -72,5 +73,33 @@ if __name__ == '__main__':
             file.write(u'\n')
 
 
+    # prepare the files required by ProPPR.
+    # TODO: add edges to node itself
+    examples = []
+    path_all = '../pathway/examples'
+    for line in open(path_all, 'r'):
+        line = line.strip()
+        examples.append(line)
+    shuffle(examples)
+    cut = int(0.8*len(examples))
+    train = examples[0:cut]
+    test = examples[cut:len(examples)]
+
+    path_train = '../pathway/train.examples'
+    path_test = '../pathway/test.examples'
+    f = open(path_train,'w')
+    for line in train:
+        print >> f, line
+    f.close
+    f = open(path_test,'w')
+    for line in test:
+        print >> f, line
+    f.close
+
+    path_label = '../pathway/labels.cfacts'
+    f = open(path_label,'w')
+    for gene in corpus:
+        print >> f, 'isDEG\t'+gene
+    f.close
 
 
