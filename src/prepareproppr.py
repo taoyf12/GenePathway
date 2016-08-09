@@ -19,6 +19,7 @@ if __name__ == '__main__':
     f = open(path_pathway_out, 'w')
     print 'saving to: {}...'.format(path_pathway_out)
 
+    selfloop = 0
     corpus = set()
     for line in open(path_pathway, 'r'):
         values = line.strip().split('\t')
@@ -26,14 +27,21 @@ if __name__ == '__main__':
         geney = values[2].lower()
         #genex = values[1]
         #geney = values[2]
+        # we don't include the edge to itself
+        # if (genex != geney):
         corpus.add(genex)
         corpus.add(geney)
+        if genex == geney:
+            selfloop += 1
         print >> f, 'leadTo\t{}\t{}\t1.0000'.format(genex,geney)
 
     f.close()
     print 'nodes = {}'.format(len(corpus))
+    print 'selfloop = {}'.format(selfloop)
 
-
+    sga_corpus = set()
+    deg_corpus = set()
+    sga_deg_corpus = set()
     path_sga2deg = '../TDI_dump/sga2deg_large.txt'
     print 'reading from: {}...'.format(path_sga2deg)
     path_sga2deg_out = '../TDI_dump/sga2deg.txt'
@@ -46,6 +54,14 @@ if __name__ == '__main__':
         geney = values[1].lower()
         if (genex in corpus) and (geney in corpus):
             sga2deg.add((genex,geney))
+            sga_corpus.add(genex)
+            deg_corpus.add(geney)
+            sga_deg_corpus.add(genex)
+            sga_deg_corpus.add(geney)
+
+    print 'nodes(sga) = {}'.format(len(sga_corpus))
+    print 'nodes(deg) = {}'.format(len(deg_corpus))
+    print 'nodes(sga_deg) = {}'.format(len(sga_deg_corpus))
 
     print 'sorting...'
     sga2deg = sorted(sga2deg, key = lambda item:(item[0],item[1]))
@@ -81,7 +97,7 @@ if __name__ == '__main__':
         line = line.strip()
         examples.append(line)
     shuffle(examples)
-    cut = int(0.8*len(examples))
+    cut = int(0.5*len(examples))
     train = examples[0:cut]
     test = examples[cut:len(examples)]
 
