@@ -1,16 +1,18 @@
-# Extract data from dump file.
-#sort -k 3g test5.txt > test6.txt
+
+from collections import defaultdict as dd
+import io
+from random import shuffle
 
 def readTDI(path, pos_sga, pos_deg):
     '''
-    This readTDI function simply deduplicate all the 
-    (sga, deg) pairs.
+    Aggregate all the (sgaid, degid) pairs.
+    path: dir of .sql file.
+    pos_sga: position of sgaid.
+    pos_deg: position of degid.
     '''
     print 'reading from: {}...'.format(path)
     sga2deg = set()
-    i = 0
     for line in open(path, 'r'):
-        i += 1
         values = line.split('),(')
         if 'INSERT INTO' in values[0]:
             values[-1] = values[-1][:-3]
@@ -20,34 +22,37 @@ def readTDI(path, pos_sga, pos_deg):
                 row = val.split(',')
                 if row[pos_sga] != 'NULL':
                     sga2deg.add((row[pos_sga],row[pos_deg]))
-    sga2deg = list(sga2deg)
-    print 'sorting...'
-    sga2deg = sorted(sga2deg, key = lambda item:(int(item[0]),int(item[1])))
-    print 'len = {}'.format(len(sga2deg))
+    #sga2deg = list(sga2deg)
+    #sga2deg = sorted(sga2deg, key = lambda item:(int(item[0]),int(item[1])))
+    print 'len(sgaid2degid) = {}'.format(len(sga2deg))
     return sga2deg
 
 def readSQL(path, pos_src, pos_dist):
+    '''
+    Read LUT from .sql file.
+    src2dist: a dictionary
+    '''
     print 'reading from: {}...'.format(path)
     src2dist = {}
-    i = 0
     for line in open(path, 'r'):
-        i += 1
         values = line.split('),(')
         if 'INSERT INTO' in values[0]:
             # modify first and last string in list.
             values[-1] = values[-1][:-3]
             tmp = values[0].split('(')
             values[0] = tmp[1]
-            # val: 45009,181,3437,NULL,'TCGA-13-0751','CDH11'
             for val in values:
                 row = val.split(',')
-                # TODO: row[2] can be NULL...?
                 src2dist[row[pos_src]] = row[pos_dist]
 
     print 'len = {}'.format(len(src2dist))
     return src2dist
 
 def save2txt(path, table):
+    '''
+    path: the filename to be saved.
+    table: list of string list, data to be saved.
+    '''
     print 'saving to {}...'.format(path)
     f = open(path, 'w')
     for row in table:
@@ -55,10 +60,11 @@ def save2txt(path, table):
     f.close()
 
 if __name__ == '__main__':
+
+    # Extract (sga, deg) pairs from dumped .sql file.
     path_tdi = '../TDI_dump/TDI_Results.sql'
     sgaid2degid = readTDI(path_tdi,2,4)
 
-    # sga_id to gen_id
     path_sga = '../TDI_dump/SGAs.sql'
     sgaid2genid = readSQL(path_sga,0,2)
 
@@ -70,20 +76,22 @@ if __name__ == '__main__':
 
     sga2deg = set()
     for row in sgaid2degid:
-        sga_tmp = sgaid2genid[row[0]]
-        deg_tmp = degid2genid[row[1]]
-        #print row[0], sga_tmp
-        if sga_tmp == 'NULL':
+        sgaid_tmp = sgaid2genid[row[0]]
+        degid_tmp = degid2genid[row[1]]
+        # sga is unit, no corresponding genid.
+        if sgaid_tmp == 'NULL':
             continue
         else:
-            sga = genid2gen[sga_tmp]
-            deg = genid2gen[deg_tmp]
-            # TODO: lowever case?
-            # remove ''
-            sga2deg.add((sga[1:-1],deg[1:-1]))
+            sga = genid2gen[sgaid_tmp]
+            deg = genid2gen[degid_tmp]
+            # normalize to lower case gene representation.
+            sga2deg.add((sga[1:-1].lower(),deg[1:-1].lower()))
     sga2deg = list(sga2deg)
-    print 'sorting...'
     sga2deg = sorted(sga2deg, key = lambda item:(item[0], item[1]))
 
-    path_sga2deg = '../TDI_dump/sga2deg_large.txt'
+    # prepare the files required by ProPPR.
+
+
+
+    path_sga2deg = '../TDI_dump/sga2deg.txt'
     save2txt(path_sga2deg, sga2deg)
