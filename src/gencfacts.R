@@ -1,3 +1,6 @@
+# Read matrix from .rda file &
+# save it to the 2-ary .cfacts file.
+
 load('../TDI_dump/gadj.rda')
 
 cn = colnames(gadj)
