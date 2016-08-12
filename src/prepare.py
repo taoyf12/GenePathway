@@ -1,7 +1,7 @@
 # Prepare date from raw data.
 from collections import defaultdict as dd
 import io
-from random import shuffle
+import random
 
 def readTDI(path, pos_sga, pos_deg):
     '''
@@ -184,7 +184,10 @@ if __name__ == '__main__':
         examples.append(line)
 
     print 'len(samples) = {}'.format(len(examples))
-    shuffle(examples)
+
+    SEED = 666
+    random.seed(SEED)
+    random.shuffle(examples)
     thresh1 = 0.1
     thresh2 = 0.2
     cut1 = int(thresh1*len(examples))
