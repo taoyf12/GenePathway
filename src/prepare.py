@@ -130,7 +130,7 @@ if __name__ == '__main__':
     # prepare the files required by ProPPR.
     path_pathway = '../TDI_dump/pathway.cfacts'
     corpus, pathway = buildPathway(path_pathway)
-    path_pathway_out = '../pathway/pathway.graph'
+    path_pathway_out = '/usr1/public/yifeng/pathway/pathway.graph'
     save2txt(path_pathway_out, pathway)
 
     # (sga,deg) pairs within the pathway.graph
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     sga2deg = sga2deg_out
     print 'len(sga2deg) = {}'.format(len(sga2deg))
 
-    path_label = '../pathway/labels.cfacts'
+    path_label = '/usr1/public/yifeng/pathway/labels.cfacts'
     print 'saving to {}...'.format(path_label)
     f = open(path_label,'w')
     for gene in deg_corpus:
@@ -162,7 +162,7 @@ if __name__ == '__main__':
         deg = line[1]
         sga2deg_list[sga].append(deg)
 
-    path_all = '../pathway/examples'
+    path_all = '/usr1/public/yifeng/pathway/examples'
     print 'saving to {}...'.format(path_all)
     with io.open(path_all,'w') as file:
         for _, sga in enumerate(sga2deg_list):
@@ -193,23 +193,12 @@ if __name__ == '__main__':
     test = examples[cut1:cut2]
     remain = examples[cut2:len(examples)]
 
-    path_train = '../pathway/train.examples'
-    path_test = '../pathway/test.examples'
-    path_remain = '../pathway/remain.examples'
+    path_train = '/usr1/public/yifeng/pathway/train.examples'
+    path_test = '/usr1/public/yifeng/pathway/test.examples'
+    path_remain = '/usr1/public/yifeng/pathway/remain.examples'
     save2txt_list(path_train,train)
     save2txt_list(path_test,test)
     save2txt_list(path_remain,remain)
-    # print 'saving to {}...'.format(path_train)
-    # f = open(path_train,'w')
-    # for line in train:
-    #     print >> f, line
-    # f.close
-
-    # print 'saving to {}...'.format(path_test)
-    # f = open(path_test,'w')
-    # for line in test:
-    #     print >> f, line
-    # f.close
 
     print 'Done!'
 
