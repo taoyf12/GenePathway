@@ -59,6 +59,17 @@ def save2txt(path, table):
         print >> f, '\t'.join(row)
     f.close()
 
+def save2txt_list(path, table):
+    '''
+    path: the filename to be saved.
+    table: list/set of string, data to be saved.
+    '''
+    print 'saving to {}...'.format(path)
+    f = open(path, 'w')
+    for row in table:
+        print >> f, row
+    f.close()
+
 def buildPathway(path):
     '''
     Based on pathway.cfacts raw data, remove nodes not connected
@@ -174,25 +185,31 @@ if __name__ == '__main__':
 
     print 'len(samples) = {}'.format(len(examples))
     shuffle(examples)
-    thresh = 0.3
-    cut = int(thresh*len(examples))
-    train = examples[0:cut]
-    test = examples[cut:len(examples)]
+    thresh1 = 0.1
+    thresh2 = 0.2
+    cut1 = int(thresh1*len(examples))
+    cut2 = int(thresh2*len(examples))
+    train = examples[0:cut1]
+    test = examples[cut1:cut2]
+    remain = examples[cut2:len(examples)]
 
     path_train = '../pathway/train.examples'
     path_test = '../pathway/test.examples'
+    path_remain = '../pathway/remain.examples'
+    save2txt_list(path_train,train)
+    save2txt_list(path_test,test)
+    save2txt_list(path_remain,remain)
+    # print 'saving to {}...'.format(path_train)
+    # f = open(path_train,'w')
+    # for line in train:
+    #     print >> f, line
+    # f.close
 
-    print 'saving to {}...'.format(path_train)
-    f = open(path_train,'w')
-    for line in train:
-        print >> f, line
-    f.close
-
-    print 'saving to {}...'.format(path_test)
-    f = open(path_test,'w')
-    for line in test:
-        print >> f, line
-    f.close
+    # print 'saving to {}...'.format(path_test)
+    # f = open(path_test,'w')
+    # for line in test:
+    #     print >> f, line
+    # f.close
 
     print 'Done!'
 
