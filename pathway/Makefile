@@ -1,4 +1,5 @@
 echo ===Compile & Set=====================================================================
+export PROPPR_JAVA_ARGS=-Xmx140g
 proppr compile pathway.ppr
 proppr set --programFiles pathway.wam:labels.cfacts:pathway.graph
 echo ===Ground============================================================================
