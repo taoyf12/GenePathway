@@ -98,8 +98,8 @@ def buildPathway(path):
     return corpus, pathway
 
 def writeSample(path, filename, sga2deglist, deg_corpus):
-    print 'saving to {}...'.format(path+filename)
-    i,j = 0,0
+    print 'saving to {}...'.format(path+'/'+filename)
+    #i,j = 0,0
     with io.open(path+'/tmp','w') as file:
         for _, sga in enumerate(sga2deglist):
             deg = sga2deglist[sga]
@@ -109,14 +109,14 @@ def writeSample(path, filename, sga2deglist, deg_corpus):
                 # TODO:
                 if gene in deg:
                     file.write(u'\t+')
-                    i += 1
+                    #i += 1
                 else:
                     file.write(u'\t-')
-                    j += 1
+                    #j += 1
                 file.write(u'pathTo(%s,%s)'%(sga,gene))
             file.write(u'\n')
 
-    print 'len(pos) = {}, len(neg) = {}'.format(i,j)
+    #print 'len(pos) = {}, len(neg) = {}'.format(i,j)
 
     examples = []
     for line in open(path+'/tmp', 'r'):
@@ -128,8 +128,9 @@ def writeSample(path, filename, sga2deglist, deg_corpus):
     SEED = 666
     random.seed(SEED)
     random.shuffle(examples)
-    os.remove(path+'/tmp');
-    path_out = dest+'/'+filename
+    # TODO:
+    #os.remove(path+'/tmp');
+    path_out = path+'/'+filename
     save2txt_list(path_out,examples)
 
 if __name__ == '__main__':
@@ -171,7 +172,7 @@ if __name__ == '__main__':
     genid2gen = readSQL(path_gen,0,1)
 
 
-              
+
     # prepare the files required by ProPPR.
     # pathway.graph
     path_pathway = '../TDI_dump/pathway.cfacts'
@@ -192,7 +193,6 @@ if __name__ == '__main__':
     for gene in deg_corpus:
         print >> f, 'isDEG\t'+gene
     f.close
-    # TODO: Problem here.
     print 'len(deg) = {}'.format(len(deg_corpus))
 
 
@@ -251,17 +251,16 @@ if __name__ == '__main__':
     sga2deg_test = sga2deg_out_test
     sga2deg_remain = sga2deg_out_remain
 
-    path_sga2deg = dest+'/pathway_origin/sga2deg_train.examples'
+    path_sga2deg = dest+'/pathway_origin/sga2deg_train'
     save2txt(path_sga2deg,sga2deg_train)
-    path_sga2deg = dest+'/pathway_origin/sga2deg_test.examples'
+    path_sga2deg = dest+'/pathway_origin/sga2deg_test'
     save2txt(path_sga2deg,sga2deg_test)
-    path_sga2deg = dest+'/pathway_origin/sga2deg_remain.examples'
+    path_sga2deg = dest+'/pathway_origin/sga2deg_remain'
     save2txt(path_sga2deg,sga2deg_remain)
 
     print 'len(sga2deg_train) = {}'.format(len(sga2deg_train))
     print 'len(sga2deg_test) = {}'.format(len(sga2deg_test))
     print 'len(sga2deg_remain) = {}'.format(len(sga2deg_remain))
-
 
 
     sga2deg_list_train = dd(list)
