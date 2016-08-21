@@ -128,8 +128,7 @@ def writeSample(path, filename, sga2deglist, deg_corpus):
     SEED = 666
     random.seed(SEED)
     random.shuffle(examples)
-    # TODO:
-    #os.remove(path+'/tmp');
+    os.remove(path+'/tmp');
     path_out = path+'/'+filename
     save2txt_list(path_out,examples)
 
