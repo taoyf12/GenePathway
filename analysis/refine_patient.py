@@ -108,6 +108,14 @@ if __name__ == '__main__':
     save2txt_list(path_train,examples)
 
 
+    deg_corpus_train = deg_corpus
+    sga2deg_train = sga2deg
+
+
+
+
+
+
 
 
 
@@ -176,12 +184,13 @@ if __name__ == '__main__':
     save2txt_list(path_test,examples)
     
 
+    deg_corpus_test = deg_corpus
+    sga2deg_test = sga2deg
 
 
 
 
-
-    # Test data
+    # Remain data
     path_solution = '../pathway_patient/remain.solutions.txt'
     sga2deg_all = readsolution(path_solution)
     # must be: sga2deg_train.examples
@@ -246,9 +255,21 @@ if __name__ == '__main__':
     save2txt_list(path_remain,examples)
 
 
+    deg_corpus_remain = deg_corpus
+    sga2deg_remain = sga2deg
 
 
 
+
+
+
+
+    print 'result!'
+    print len(deg_corpus_train),len(deg_corpus_test),len(deg_corpus_remain)
+    print len(deg_corpus_train.intersection(deg_corpus_test)),len(deg_corpus_train.intersection(deg_corpus_remain))
+
+    print len(sga2deg_train),len(sga2deg_test),len(sga2deg_remain)
+    print len(sga2deg_train.intersection(sga2deg_test)),len(sga2deg_train.intersection(sga2deg_remain))
 
 
 
