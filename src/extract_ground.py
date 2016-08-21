@@ -27,7 +27,7 @@ def readsolution(path,pos_start):
 
 def readsrc2dst(path):
     '''
-    read into (sga,deg) tuples from file.
+    read into (src,dst) tuples from file.
     '''
     print 'reading from: {}...'.format(path)
     src2dst = set()
@@ -105,8 +105,6 @@ def extract_ground_in(path_solution, path_src2dst, path_out, relation, is_train,
         line = line.strip()
         examples.append(line)
 
-    # print 'len(samples) = {}'.format(len(examples))
-
     SEED = 123
     random.seed(SEED)
     random.shuffle(examples)
@@ -121,8 +119,8 @@ def show_intersection(intro, train, test, remain):
     print intro
     print 'train\ttest\tremain'
     print '{}\t{}\t{}'.format(len(train),len(test),len(remain))
-    print 'train&test\ttrain&remain'
-    print '{}\t{}'.format(len(train.intersection(test)), len(train.intersection(remain)))
+    print 'train&test\t\ttrain&remain'
+    print '{}\t\t{}'.format(len(train.intersection(test)), len(train.intersection(remain)))
 
 if __name__ == '__main__':
     
