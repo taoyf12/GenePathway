@@ -143,7 +143,7 @@ if __name__ == '__main__':
         patid = row[0]
         sgaid_tmp = sgaid2genid[row[1]]
         degid_tmp = degid2genid[row[2]]
-        print patid
+        #print patid
         # sga is unit, no corresponding genid.
         if sgaid_tmp == 'NULL':
             continue
