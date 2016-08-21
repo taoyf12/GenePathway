@@ -156,7 +156,7 @@ if __name__ == '__main__':
             # TODO:
             # sga and deg should be different.
             if sga != deg:
-                seg2deg.add((sga,deg))
+                sga2deg.add((sga,deg))
                 if patid in patid_train:
                     sga2deg_train.add((sga,deg))
                 elif patid in patid_test:
