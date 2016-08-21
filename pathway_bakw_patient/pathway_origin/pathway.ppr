@@ -1,0 +1,5 @@
+# pathway.ppr
+
+pathFrom(GeneA,GeneB) :- resultFrom(GeneA,GeneM),pathFrom(GeneM,GeneB),ab_resultFrom(GeneA,GeneM).
+pathFrom(GeneA,GeneB) :- resultFrom(GeneA,GeneB),isSGA(GeneB),ab_resultFrom(GeneA,GeneB).
+ab_resultFrom(GeneA,GeneB) :- {f#(GeneA, GeneB, Weight) : resultFrom#(GeneA,GeneB,Weight)}.
