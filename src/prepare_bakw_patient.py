@@ -103,7 +103,7 @@ def writeSample(path, filename, deg2sgalist, sga_corpus):
     with io.open(path+'/tmp','w') as file:
         for _, deg in enumerate(deg2sgalist):
             sga = deg2sgalist[deg]
-            file.write(u'resultFrom(%s,Y)'%deg)
+            file.write(u'pathFrom(%s,Y)'%deg)
             # TODO:
             for gene in sga_corpus:
                 # TODO:
@@ -113,7 +113,7 @@ def writeSample(path, filename, deg2sgalist, sga_corpus):
                 else:
                     file.write(u'\t-')
                     #j += 1
-                file.write(u'resultFrom(%s,%s)'%(deg,gene))
+                file.write(u'pathFrom(%s,%s)'%(deg,gene))
             file.write(u'\n')
 
     #print 'len(pos) = {}, len(neg) = {}'.format(i,j)
@@ -170,8 +170,6 @@ if __name__ == '__main__':
     degid2genid = readSQL(path_deg,0,2)
     genid2gen = readSQL(path_gen,0,1)
 
-
-
     # prepare the files required by ProPPR.
     # pathway.graph
     path_pathway = '../TDI_dump/pathway.cfacts'
@@ -180,7 +178,6 @@ if __name__ == '__main__':
     save2txt(path_pathway_out, pathway)
     # labels.cfacts
     sga_corpus = set()
-    # TODO: NULL
     for _, genid in sgaid2genid.iteritems():
         if genid == 'NULL': continue
         gene = genid2gen[genid][1:-1].lower()
@@ -263,16 +260,16 @@ if __name__ == '__main__':
     deg2sga_list_test = dd(list)
     deg2sga_list_remain = dd(list)
     for line in deg2sga_train:
-        sga = line[0]
-        deg = line[1]
+        deg = line[0]
+        sga = line[1]
         deg2sga_list_train[deg].append(sga)
     for line in deg2sga_test:
-        sga = line[0]
-        deg = line[1]
+        deg = line[0]
+        sga = line[1]
         deg2sga_list_test[deg].append(sga)
     for line in deg2sga_remain:
-        sga = line[0]
-        deg = line[1]
+        deg = line[0]
+        sga = line[1]
         deg2sga_list_remain[deg].append(sga)
 
     writeSample(dest+'/pathway_origin', 'train.examples', deg2sga_list_train, sga_corpus)
