@@ -97,6 +97,41 @@ def buildPathway(path):
     print 'len(node) = {}'.format(len(corpus))
     return corpus, pathway
 
+def writeSample(path, filename, sga2deglist, deg_corpus):
+    print 'saving to {}...'.format(path+filename)
+    i,j = 0,0
+    with io.open(path+'/tmp','w') as file:
+        for _, sga in enumerate(sga2deglist):
+            deg = sga2deglist[sga]
+            file.write(u'pathTo(%s,Y)'%sga)
+            # TODO:
+            for gene in deg_corpus:
+                # TODO:
+                if gene in deg:
+                    file.write(u'\t+')
+                    i += 1
+                else:
+                    file.write(u'\t-')
+                    j += 1
+                file.write(u'pathTo(%s,%s)'%(sga,gene))
+            file.write(u'\n')
+
+    print 'len(pos) = {}, len(neg) = {}'.format(i,j)
+
+    examples = []
+    for line in open(path+'/tmp', 'r'):
+        line = line.strip()
+        examples.append(line)
+
+    print 'len(samples) = {}'.format(len(examples))
+
+    SEED = 666
+    random.seed(SEED)
+    random.shuffle(examples)
+    os.remove(path+'/tmp');
+    path_out = dest+'/'+filename
+    save2txt_list(path_out,examples)
+
 if __name__ == '__main__':
     print 'generating datasets in patient-wise manner...'
 
@@ -150,7 +185,6 @@ if __name__ == '__main__':
         if gene in corpus:
             deg_corpus.add(gene)
         #genid2gen = readSQL(path_gen,0,1)
-    print deg_corpus,len(deg_corpus)
 
     path_label = dest+'/pathway_origin/labels.cfacts'
     print 'saving to {}...'.format(path_label)
@@ -160,16 +194,6 @@ if __name__ == '__main__':
     f.close
     # TODO: Problem here.
     print 'len(deg) = {}'.format(len(deg_corpus))
-
-
-
-
-
-
-
-
-
-
 
 
     print 'mapping from ids to genes...'
@@ -200,175 +224,65 @@ if __name__ == '__main__':
                 sga2deg_test.add((sga,deg))
             else: # elif patid in patid_remain:
                 sga2deg_remain.add((sga,deg))
-    # # (sga,deg) pairs within the pathway.graph
-    # sga2deg_out_train = set()
-    # sga2deg_out_test = set()
-    # sga2deg_out_remain = set()    
-    # for values in sga2deg_train:
-    #     genex = values[0]
-    #     geney = values[1]
-    #     if (genex in corpus) and (geney in corpus):
-    #         # genex and geney won't be same, we have examined it before.
-    #         sga2deg_out_train.add((genex,geney))
-    #         #deg_corpus.add(geney)
-    # for values in sga2deg_test:
-    #     genex = values[0]
-    #     geney = values[1]
-    #     if (genex in corpus) and (geney in corpus):
-    #         sga2deg_out_test.add((genex,geney))
-    #         #deg_corpus.add(geney)
-    # for values in sga2deg_remain:
-    #     genex = values[0]
-    #     geney = values[1]
-    #     if (genex in corpus) and (geney in corpus):
-    #         sga2deg_out_remain.add((genex,geney))
-    #         #deg_corpus.add(geney)
-
-    # # sga2deg_out = sorted(sga2deg_out, key = lambda item:(item[0],item[1]))
-    # sga2deg_train = sga2deg_out_train
-    # sga2deg_test = sga2deg_out_test
-    # sga2deg_remain = sga2deg_out_remain
-    # print 'len(sga2deg_train) = {}'.format(len(sga2deg_train))
-    # print 'len(sga2deg_test) = {}'.format(len(sga2deg_test))
-    # print 'len(sga2deg_remain) = {}'.format(len(sga2deg_remain))
 
 
+    # (sga,deg) pairs within the pathway.graph
+    sga2deg_out_train = set()
+    sga2deg_out_test = set()
+    sga2deg_out_remain = set()    
+    for values in sga2deg_train:
+        genex = values[0]
+        geney = values[1]
+        if (genex in corpus) and (geney in corpus):
+            # genex and geney won't be same, we have examined it before.
+            sga2deg_out_train.add((genex,geney))
+    for values in sga2deg_test:
+        genex = values[0]
+        geney = values[1]
+        if (genex in corpus) and (geney in corpus):
+            sga2deg_out_test.add((genex,geney))
+    for values in sga2deg_remain:
+        genex = values[0]
+        geney = values[1]
+        if (genex in corpus) and (geney in corpus):
+            sga2deg_out_remain.add((genex,geney))
 
-    # sga2deg_list_train = dd(list)
-    # sga2deg_list_test = dd(list)
-    # sga2deg_list_remain = dd(list)
-    # for line in sga2deg_train:
-    #     sga = line[0]
-    #     deg = line[1]
-    #     sga2deg_list_train[sga].append(deg)
-    # for line in sga2deg_test:
-    #     sga = line[0]
-    #     deg = line[1]
-    #     sga2deg_list_test[sga].append(deg)
-    # for line in sga2deg_remain:
-    #     sga = line[0]
-    #     deg = line[1]
-    #     sga2deg_list_remain[sga].append(deg)
+    sga2deg_train = sga2deg_out_train
+    sga2deg_test = sga2deg_out_test
+    sga2deg_remain = sga2deg_out_remain
+
+    path_sga2deg = dest+'/pathway_origin/sga2deg_train.examples'
+    save2txt(path_sga2deg,sga2deg_train)
+    path_sga2deg = dest+'/pathway_origin/sga2deg_test.examples'
+    save2txt(path_sga2deg,sga2deg_test)
+    path_sga2deg = dest+'/pathway_origin/sga2deg_remain.examples'
+    save2txt(path_sga2deg,sga2deg_remain)
+
+    print 'len(sga2deg_train) = {}'.format(len(sga2deg_train))
+    print 'len(sga2deg_test) = {}'.format(len(sga2deg_test))
+    print 'len(sga2deg_remain) = {}'.format(len(sga2deg_remain))
 
 
 
-    # path_sga2deg = '/usr1/public/yifeng/pathway_patient/sga2deg_train.examples'
-    # save2txt(path_sga2deg,sga2deg_train)
-    # path_sga2deg = '/usr1/public/yifeng/pathway_patient/sga2deg_test.examples'
-    # save2txt(path_sga2deg,sga2deg_test)
-    # path_sga2deg = '/usr1/public/yifeng/pathway_patient/sga2deg_remain.examples'
-    # save2txt(path_sga2deg,sga2deg_remain)
+    sga2deg_list_train = dd(list)
+    sga2deg_list_test = dd(list)
+    sga2deg_list_remain = dd(list)
+    for line in sga2deg_train:
+        sga = line[0]
+        deg = line[1]
+        sga2deg_list_train[sga].append(deg)
+    for line in sga2deg_test:
+        sga = line[0]
+        deg = line[1]
+        sga2deg_list_test[sga].append(deg)
+    for line in sga2deg_remain:
+        sga = line[0]
+        deg = line[1]
+        sga2deg_list_remain[sga].append(deg)
 
-
-
-
-
-    # i = 0
-    # j = 0
-    # path_all = '/usr1/public/yifeng/pathway_patient/examples_train'
-    # print 'saving to {}...'.format(path_all)
-    # with io.open(path_all,'w') as file:
-    #     for _, sga in enumerate(sga2deg_list_train):
-    #         deg = sga2deg_list_train[sga]
-    #         file.write(u'pathTo(%s,Y)'%sga)
-    #         # TODO:
-    #         for gene in deg_corpus:
-    #             # TODO:
-    #             if gene in deg:
-    #                 file.write(u'\t+')
-    #                 i += 1
-    #             else:
-    #                 file.write(u'\t-')
-    #                 j += 1
-    #             file.write(u'pathTo(%s,%s)'%(sga,gene))
-    #         file.write(u'\n')
-
-    # print 'len(pos) = {}, len(neg) = {}'.format(i,j)
-    # examples = []
-    # for line in open(path_all, 'r'):
-    #     line = line.strip()
-    #     examples.append(line)
-
-    # print 'len(samples_train) = {}'.format(len(examples))
-
-    # SEED = 666
-    # random.seed(SEED)
-    # random.shuffle(examples)
-
-    # path_train = '/usr1/public/yifeng/pathway_patient/train.examples'
-    # save2txt_list(path_train,examples)
-
-
-    # i = 0
-    # j = 0
-    # path_all = '/usr1/public/yifeng/pathway_patient/examples_test'
-    # print 'saving to {}...'.format(path_all)
-    # with io.open(path_all,'w') as file:
-    #     for _, sga in enumerate(sga2deg_list_test):
-    #         deg = sga2deg_list_test[sga]
-    #         file.write(u'pathTo(%s,Y)'%sga)
-    #         # TODO:
-    #         for gene in deg_corpus:
-    #             # TODO:
-    #             if gene in deg:
-    #                 file.write(u'\t+')
-    #                 i += 1
-    #             else:
-    #                 file.write(u'\t-')
-    #                 j += 1
-    #             file.write(u'pathTo(%s,%s)'%(sga,gene))
-    #         file.write(u'\n')
-
-    # print 'len(pos) = {}, len(neg) = {}'.format(i,j)
-    # examples = []
-    # for line in open(path_all, 'r'):
-    #     line = line.strip()
-    #     examples.append(line)
-
-    # print 'len(samples_test) = {}'.format(len(examples))
-
-    # SEED = 666
-    # random.seed(SEED)
-    # random.shuffle(examples)
-
-    # path_test = '/usr1/public/yifeng/pathway_patient/test.examples'
-    # save2txt_list(path_test,examples)
-
-
-    # i = 0
-    # j = 0
-    # path_all = '/usr1/public/yifeng/pathway_patient/examples_remain'
-    # print 'saving to {}...'.format(path_all)
-    # with io.open(path_all,'w') as file:
-    #     for _, sga in enumerate(sga2deg_list_remain):
-    #         deg = sga2deg_list_remain[sga]
-    #         file.write(u'pathTo(%s,Y)'%sga)
-    #         # TODO:
-    #         for gene in deg_corpus:
-    #             # TODO:
-    #             if gene in deg:
-    #                 file.write(u'\t+')
-    #                 i += 1
-    #             else:
-    #                 file.write(u'\t-')
-    #                 j += 1
-    #             file.write(u'pathTo(%s,%s)'%(sga,gene))
-    #         file.write(u'\n')
-
-    # print 'len(pos) = {}, len(neg) = {}'.format(i,j)
-    # examples = []
-    # for line in open(path_all, 'r'):
-    #     line = line.strip()
-    #     examples.append(line)
-
-    # print 'len(samples_remain) = {}'.format(len(examples))
-
-    # SEED = 666
-    # random.seed(SEED)
-    # random.shuffle(examples)
-
-    # path_remain = '/usr1/public/yifeng/pathway_patient/remain.examples'
-    # save2txt_list(path_remain,examples)
+    writeSample(dest+'/pathway_origin', 'train.examples', sga2deg_list_train, deg_corpus)
+    writeSample(dest+'/pathway_origin', 'test.examples', sga2deg_list_test, deg_corpus)
+    writeSample(dest+'/pathway_origin', 'remain.examples', sga2deg_list_remain, deg_corpus)
 
     print 'Done!'
     # Q.E.D.
