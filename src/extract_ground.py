@@ -1,6 +1,7 @@
 # Refine the data.
 from collections import defaultdict as dd
 import io
+import os
 import random
 
 def readsolution(path):
@@ -40,169 +41,93 @@ def save2txt_list(path, table):
         print >> f, row
     f.close()
 
+def extract_ground_in(path_solution, path_sga2deg, path_out, is_train, path_label=None):
+    
+    # all the grounded examples.
+    sga2deg_all = readsolution(path_solution)
+
+    # positive examples.
+    sga2deg = readsga2deg(path_sga2deg)
+
+    # positive grounded examples.
+    sga2deg = sga2deg.intersection(sga2deg_all)
+    # for pair in sga2deg_all:
+    #     if pair in sga2deg:
+    #         sga2deg_out.add(pair)
+
+    # postive ones
+    # sga2deg = sga2deg_out
+    print 'len(sga2deg) = {}'.format(len(sga2deg))
+
+    deg_corpus = set()
+    for pair in sga2deg:
+        deg_corpus.add(pair[1])
+
+    if is_train:
+        print 'saving to {}...'.format(path_label)
+        f = open(path_label,'w')
+        for gene in deg_corpus:
+            print >> f, 'isDEG\t'+gene
+        f.close
+    print 'len(deg_corpus) = {}'.format(len(deg_corpus))
+
+
+    sga2deg_list = dd(list)
+    for line in sga2deg:
+        sga = line[0]
+        deg = line[1]
+        sga2deg_list[sga].append(deg)
+
+    path_all = dest+'/pathway_ground/tmp'
+    print 'saving to {}...'.format(path_all)
+    with io.open(path_all,'w') as file:
+        for _, sga in enumerate(sga2deg_list):
+            deg = sga2deg_list[sga]
+            file.write(u'pathTo(%s,Y)'%sga)
+            # TODO:
+            for gene in deg_corpus:
+                # TODO:
+                if gene in deg:
+                    file.write(u'\t+')
+                else:
+                    file.write(u'\t-')
+                file.write(u'pathTo(%s,%s)'%(sga,gene))
+            file.write(u'\n')
+
+    examples = []
+    for line in open(path_all, 'r'):
+        line = line.strip()
+        examples.append(line)
+
+    print 'len(samples) = {}'.format(len(examples))
+
+    SEED = 123
+    random.seed(SEED)
+    random.shuffle(examples)
+
+    os.remove(path_all)
+
+    save2txt_list(path_out,examples)
+    return deg_corpus,sga2deg
+
 
 if __name__ == '__main__':
-
-    # Extract (sga, deg) pairs from dumped .sql file.
     dest = '../pathway_forw_patient'
-    path_solution = dest+'/pathway_origin/train.solutions.txt'
-    sga2deg_all = readsolution(path_solution)
-    # must be: sga2deg_train.examples
-    path_sga2deg = dest+'/pathway_origin/sga2deg_train'
-    sga2deg = readsga2deg(path_sga2deg)
-    sga2deg_out = set()
-    for pair in sga2deg_all:
-        if pair in sga2deg:
-            sga2deg_out.add(pair)
-    # postive ones
-    sga2deg = sga2deg_out
-    print 'len(sga2deg_train) = {}'.format(len(sga2deg))
+    deg_corpus_train,sga2deg_train = extract_ground_in(dest+'/pathway_origin/train.solutions.txt', \
+        dest+'/pathway_origin/sga2deg_train', dest+'/pathway_ground/train.examples', True, \
+        dest+'/pathway_ground/labels.cfacts')
 
-    deg_corpus = set()
-    for pair in sga2deg:
-        deg_corpus.add(pair[1])
+    deg_corpus_test,sga2deg_test = extract_ground_in(dest+'/pathway_origin/test.solutions.txt', \
+        dest+'/pathway_origin/sga2deg_test', dest+'/pathway_ground/test.examples', False)
+    deg_corpus_remain,sga2deg_remain = extract_ground_in(dest+'/pathway_origin/remain.solutions.txt', \
+        dest+'/pathway_origin/sga2deg_remain', dest+'/pathway_ground/remain.examples', False)
 
-    path_label = dest+'/pathway_ground/labels.cfacts'
-    print 'saving to {}...'.format(path_label)
-    f = open(path_label,'w')
-    for gene in deg_corpus:
-        print >> f, 'isDEG\t'+gene
-    f.close
-    print 'len(deg_corpus_actual) = {}'.format(len(deg_corpus))
+    print 'result!'
+    print len(deg_corpus_train),len(deg_corpus_test),len(deg_corpus_remain)
+    print len(deg_corpus_train.intersection(deg_corpus_test)),len(deg_corpus_train.intersection(deg_corpus_remain))
 
-
-    sga2deg_list = dd(list)
-    for line in sga2deg:
-        sga = line[0]
-        deg = line[1]
-        sga2deg_list[sga].append(deg)
-
-    path_all = dest+'/pathway_ground/examples_train'
-    print 'saving to {}...'.format(path_all)
-    with io.open(path_all,'w') as file:
-        for _, sga in enumerate(sga2deg_list):
-            deg = sga2deg_list[sga]
-            file.write(u'pathTo(%s,Y)'%sga)
-            # TODO:
-            for gene in deg_corpus:
-                # TODO:
-                if gene in deg:
-                    file.write(u'\t+')
-                else:
-                    file.write(u'\t-')
-                file.write(u'pathTo(%s,%s)'%(sga,gene))
-            file.write(u'\n')
-
-    examples = []
-    for line in open(path_all, 'r'):
-        line = line.strip()
-        examples.append(line)
-
-    print 'len(samples) = {}'.format(len(examples))
-
-    SEED = 123
-    random.seed(SEED)
-    random.shuffle(examples)
-
-    path_train = dest+'/pathway_ground/train.examples'
-    save2txt_list(path_train,examples)
-
-    deg_corpus_train = deg_corpus
-    sga2deg_train = sga2deg
-
-
-
-
-
-
-
-
-
-    # Test data
-    dest = '../pathway_forw_patient'
-    path_solution = dest+'/pathway_origin/test.solutions.txt'
-    sga2deg_all = readsolution(path_solution)
-    # must be: sga2deg_train.examples
-    path_sga2deg = dest+'/pathway_origin/sga2deg_test'
-    sga2deg = readsga2deg(path_sga2deg)
-    sga2deg_out = set()
-    for pair in sga2deg_all:
-        if pair in sga2deg:
-            sga2deg_out.add(pair)
-    # postive ones
-    sga2deg = sga2deg_out
-    print 'len(sga2deg_test) = {}'.format(len(sga2deg))
-
-    deg_corpus = set()
-    for pair in sga2deg:
-        deg_corpus.add(pair[1])
-
-    # path_label = dest+'/pathway_ground/labels.cfacts'
-    # print 'saving to {}...'.format(path_label)
-    # f = open(path_label,'w')
-    # for gene in deg_corpus:
-    #     print >> f, 'isDEG\t'+gene
-    # f.close
-    print 'len(deg_corpus_actual) = {}'.format(len(deg_corpus))
-
-
-    sga2deg_list = dd(list)
-    for line in sga2deg:
-        sga = line[0]
-        deg = line[1]
-        sga2deg_list[sga].append(deg)
-
-    path_all = dest+'/pathway_ground/examples_test'
-    print 'saving to {}...'.format(path_all)
-    with io.open(path_all,'w') as file:
-        for _, sga in enumerate(sga2deg_list):
-            deg = sga2deg_list[sga]
-            file.write(u'pathTo(%s,Y)'%sga)
-            # TODO:
-            for gene in deg_corpus:
-                # TODO:
-                if gene in deg:
-                    file.write(u'\t+')
-                else:
-                    file.write(u'\t-')
-                file.write(u'pathTo(%s,%s)'%(sga,gene))
-            file.write(u'\n')
-
-    examples = []
-    for line in open(path_all, 'r'):
-        line = line.strip()
-        examples.append(line)
-
-    print 'len(samples) = {}'.format(len(examples))
-
-    SEED = 123
-    random.seed(SEED)
-    random.shuffle(examples)
-
-    path_train = dest+'/pathway_ground/test.examples'
-    save2txt_list(path_train,examples)
-
-    deg_corpus_train = deg_corpus
-    sga2deg_train = sga2deg
-
-
-
-
-
-
-
-    # print 'result!'
-    # print len(deg_corpus_train),len(deg_corpus_test),len(deg_corpus_remain)
-    # print len(deg_corpus_train.intersection(deg_corpus_test)),len(deg_corpus_train.intersection(deg_corpus_remain))
-
-    # print len(sga2deg_train),len(sga2deg_test),len(sga2deg_remain)
-    # print len(sga2deg_train.intersection(sga2deg_test)),len(sga2deg_train.intersection(sga2deg_remain))
-
-
-
-
-
+    print len(sga2deg_train),len(sga2deg_test),len(sga2deg_remain)
+    print len(sga2deg_train.intersection(sga2deg_test)),len(sga2deg_train.intersection(sga2deg_remain))
 
     print 'Done!'
-
-
+    # Q.E.D.
