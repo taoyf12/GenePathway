@@ -135,6 +135,7 @@ if __name__ == '__main__':
     patid_remain = patid[cut2:NUM_PAT]
 
 
+    print 'mapping from ids to genes...'
     sga2deg_train = set()
     sga2deg_test = set()
     sga2deg_remain = set()
@@ -352,12 +353,5 @@ if __name__ == '__main__':
     path_remain = '/usr1/public/yifeng/pathway_patient/remain.examples'
     save2txt_list(path_remain,examples)
 
-    # path_test = '/usr1/public/yifeng/pathway_patient/test.examples'
-    # path_remain = '/usr1/public/yifeng/pathway_patient/remain.examples'
-
-    # save2txt_list(path_test,test)
-    # save2txt_list(path_remain,remain)
-
     print 'Done!'
-
-
+    # Q.E.D.
