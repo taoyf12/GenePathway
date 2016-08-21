@@ -1,5 +1,0 @@
-# pathway.ppr
-
-pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneM),pathTo(GeneM,GeneB),ab_leadTo(GeneA,GeneM).
-pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneB),isDEG(GeneB),ab_leadTo(GeneA,GeneB).
-ab_leadTo(GeneA,GeneB) :- {f#(GeneA, GeneB, Weight) : leadTo#(GeneA,GeneB,Weight)}.
