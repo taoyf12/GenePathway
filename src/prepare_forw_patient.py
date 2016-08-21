@@ -98,7 +98,7 @@ def buildPathway(path):
     return corpus, pathway
 
 def writeSample(path, filename, sga2deglist, deg_corpus):
-    print 'saving to {}...'.format(path+'/'+filename)
+    # print 'saving to {}...'.format(path+'/'+filename)
     #i,j = 0,0
     with io.open(path+'/tmp','w') as file:
         for _, sga in enumerate(sga2deglist):

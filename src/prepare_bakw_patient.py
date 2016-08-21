@@ -97,23 +97,23 @@ def buildPathway(path):
     print 'len(node) = {}'.format(len(corpus))
     return corpus, pathway
 
-def writeSample(path, filename, sga2deglist, deg_corpus):
-    print 'saving to {}...'.format(path+'/'+filename)
+def writeSample(path, filename, deg2sgalist, sga_corpus):
+    # print 'saving to {}...'.format(path+'/'+filename)
     #i,j = 0,0
     with io.open(path+'/tmp','w') as file:
-        for _, sga in enumerate(sga2deglist):
-            deg = sga2deglist[sga]
-            file.write(u'pathTo(%s,Y)'%sga)
+        for _, deg in enumerate(deg2sgalist):
+            sga = deg2sgalist[deg]
+            file.write(u'resultFrom(%s,Y)'%deg)
             # TODO:
-            for gene in deg_corpus:
+            for gene in sga_corpus:
                 # TODO:
-                if gene in deg:
+                if gene in sga:
                     file.write(u'\t+')
                     #i += 1
                 else:
                     file.write(u'\t-')
                     #j += 1
-                file.write(u'pathTo(%s,%s)'%(sga,gene))
+                file.write(u'resultFrom(%s,%s)'%(deg,gene))
             file.write(u'\n')
 
     #print 'len(pos) = {}, len(neg) = {}'.format(i,j)
@@ -182,107 +182,102 @@ if __name__ == '__main__':
     sga_corpus = set()
     # TODO: NULL
     for _, genid in sgaid2genid.iteritems():
-        #if genid == 'NULL': 
-        print genid
+        if genid == 'NULL': continue
         gene = genid2gen[genid][1:-1].lower()
         if gene in corpus:
             sga_corpus.add(gene)
 
-    # path_label = dest+'/pathway_origin/labels.cfacts'
-    # print 'saving to {}...'.format(path_label)
-    # f = open(path_label,'w')
-    # for gene in sga_corpus:
-    #     print >> f, 'isSGA\t'+gene
-    # f.close
-    # print 'len(sga) = {}'.format(len(sga_corpus))
+    path_label = dest+'/pathway_origin/labels.cfacts'
+    print 'saving to {}...'.format(path_label)
+    f = open(path_label,'w')
+    for gene in sga_corpus:
+        print >> f, 'isSGA\t'+gene
+    f.close
+    print 'len(sga) = {}'.format(len(sga_corpus))
 
 
-    # print 'mapping from ids to genes...'
-    # sga2deg_train = set()
-    # sga2deg_test = set()
-    # sga2deg_remain = set()
-    # # need to be included in the graph, if used.
-    # # sga2deg = set()
-    # for row in patid2sgaid2degid:
-    #     patid = row[0]
-    #     sgaid_tmp = sgaid2genid[row[1]]
-    #     degid_tmp = degid2genid[row[2]]
-    #     #print patid
-    #     # sga is unit, no corresponding genid.
-    #     if sgaid_tmp == 'NULL': continue
-    #     sga = genid2gen[sgaid_tmp]
-    #     deg = genid2gen[degid_tmp]
-    #     # normalize to lower case gene representation.
-    #     sga = sga[1:-1].lower()
-    #     deg = deg[1:-1].lower()
-    #     # TODO:
-    #     # sga and deg should be different.
-    #     if sga != deg:
-    #         # sga2deg.add((sga,deg))
-    #         if patid in patid_train:
-    #             sga2deg_train.add((sga,deg))
-    #         elif patid in patid_test:
-    #             sga2deg_test.add((sga,deg))
-    #         else: # elif patid in patid_remain:
-    #             sga2deg_remain.add((sga,deg))
+    print 'mapping from ids to genes...'
+    sga2deg_train = set()
+    sga2deg_test = set()
+    sga2deg_remain = set()
+    # need to be included in the graph, if used.
+    # sga2deg = set()
+    for row in patid2sgaid2degid:
+        patid = row[0]
+        sgaid_tmp = sgaid2genid[row[1]]
+        degid_tmp = degid2genid[row[2]]
+        #print patid
+        # sga is unit, no corresponding genid.
+        if sgaid_tmp == 'NULL': continue
+        sga = genid2gen[sgaid_tmp]
+        deg = genid2gen[degid_tmp]
+        # normalize to lower case gene representation.
+        sga = sga[1:-1].lower()
+        deg = deg[1:-1].lower()
+        # TODO:
+        # sga and deg should be different.
+        if sga != deg:
+            # sga2deg.add((sga,deg))
+            if patid in patid_train:
+                sga2deg_train.add((sga,deg))
+            elif patid in patid_test:
+                sga2deg_test.add((sga,deg))
+            else: # elif patid in patid_remain:
+                sga2deg_remain.add((sga,deg))
 
 
-    # # (sga,deg) pairs within the pathway.graph
-    # sga2deg_out_train = set()
-    # sga2deg_out_test = set()
-    # sga2deg_out_remain = set()    
-    # for values in sga2deg_train:
-    #     genex = values[0]
-    #     geney = values[1]
-    #     if (genex in corpus) and (geney in corpus):
-    #         # genex and geney won't be same, we have examined it before.
-    #         sga2deg_out_train.add((genex,geney))
-    # for values in sga2deg_test:
-    #     genex = values[0]
-    #     geney = values[1]
-    #     if (genex in corpus) and (geney in corpus):
-    #         sga2deg_out_test.add((genex,geney))
-    # for values in sga2deg_remain:
-    #     genex = values[0]
-    #     geney = values[1]
-    #     if (genex in corpus) and (geney in corpus):
-    #         sga2deg_out_remain.add((genex,geney))
+    # (sga,deg) pairs within the pathway.graph
+    deg2sga_train = set()
+    deg2sga_test = set()
+    deg2sga_remain = set()
+    for values in sga2deg_train:
+        genex = values[0]
+        geney = values[1]
+        if (genex in corpus) and (geney in corpus):
+            # genex and geney won't be same, we have examined it before.
+            deg2sga_train.add((geney,genex))
+    for values in sga2deg_test:
+        genex = values[0]
+        geney = values[1]
+        if (genex in corpus) and (geney in corpus):
+            deg2sga_test.add((geney,genex))
+    for values in sga2deg_remain:
+        genex = values[0]
+        geney = values[1]
+        if (genex in corpus) and (geney in corpus):
+            deg2sga_remain.add((geney,genex))
 
-    # sga2deg_train = sga2deg_out_train
-    # sga2deg_test = sga2deg_out_test
-    # sga2deg_remain = sga2deg_out_remain
+    path_deg2sga = dest+'/pathway_origin/deg2sga_train'
+    save2txt(path_deg2sga,deg2sga_train)
+    path_deg2sga = dest+'/pathway_origin/deg2sga_test'
+    save2txt(path_deg2sga,deg2sga_test)
+    path_deg2sga = dest+'/pathway_origin/deg2sga_remain'
+    save2txt(path_deg2sga,deg2sga_remain)
 
-    # path_sga2deg = dest+'/pathway_origin/sga2deg_train'
-    # save2txt(path_sga2deg,sga2deg_train)
-    # path_sga2deg = dest+'/pathway_origin/sga2deg_test'
-    # save2txt(path_sga2deg,sga2deg_test)
-    # path_sga2deg = dest+'/pathway_origin/sga2deg_remain'
-    # save2txt(path_sga2deg,sga2deg_remain)
-
-    # print 'len(sga2deg_train) = {}'.format(len(sga2deg_train))
-    # print 'len(sga2deg_test) = {}'.format(len(sga2deg_test))
-    # print 'len(sga2deg_remain) = {}'.format(len(sga2deg_remain))
+    print 'len(deg2sga_train) = {}'.format(len(deg2sga_train))
+    print 'len(deg2sga_test) = {}'.format(len(deg2sga_test))
+    print 'len(deg2sga_remain) = {}'.format(len(deg2sga_remain))
 
 
-    # sga2deg_list_train = dd(list)
-    # sga2deg_list_test = dd(list)
-    # sga2deg_list_remain = dd(list)
-    # for line in sga2deg_train:
-    #     sga = line[0]
-    #     deg = line[1]
-    #     sga2deg_list_train[sga].append(deg)
-    # for line in sga2deg_test:
-    #     sga = line[0]
-    #     deg = line[1]
-    #     sga2deg_list_test[sga].append(deg)
-    # for line in sga2deg_remain:
-    #     sga = line[0]
-    #     deg = line[1]
-    #     sga2deg_list_remain[sga].append(deg)
+    deg2sga_list_train = dd(list)
+    deg2sga_list_test = dd(list)
+    deg2sga_list_remain = dd(list)
+    for line in deg2sga_train:
+        sga = line[0]
+        deg = line[1]
+        deg2sga_list_train[deg].append(sga)
+    for line in deg2sga_test:
+        sga = line[0]
+        deg = line[1]
+        deg2sga_list_test[deg].append(sga)
+    for line in deg2sga_remain:
+        sga = line[0]
+        deg = line[1]
+        deg2sga_list_remain[deg].append(sga)
 
-    # writeSample(dest+'/pathway_origin', 'train.examples', sga2deg_list_train, sga_corpus)
-    # writeSample(dest+'/pathway_origin', 'test.examples', sga2deg_list_test, sga_corpus)
-    # writeSample(dest+'/pathway_origin', 'remain.examples', sga2deg_list_remain, sga_corpus)
+    writeSample(dest+'/pathway_origin', 'train.examples', deg2sga_list_train, sga_corpus)
+    writeSample(dest+'/pathway_origin', 'test.examples', deg2sga_list_test, sga_corpus)
+    writeSample(dest+'/pathway_origin', 'remain.examples', deg2sga_list_remain, sga_corpus)
 
     print 'Done!'
     # Q.E.D.
