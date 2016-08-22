@@ -5,22 +5,46 @@ import os
 import random
 import argparse
 
+def isclose(a, b, rel_tol=1e-6):
+    return (abs(a-b) <= rel_tol)
+
 def predict(path, pos_start):
     print 'reading from: {}...'.format(path)
     src2dst = set()
+    #src2dst = []
+    prob_tmp = 0.0
+    src_tmp = 'helloworld1'
+    dst_tmp = 'helloworld2'
+    flag = 'nottop1'
     for line in open(path, 'r'):
         values = line.strip().split('\t')
         #print values
         if '#' in values[0]: continue
         prob = values[1]
+        prob = float(prob)
         val = values[-1][:-1]
         val = val[pos_start:-1]
         val = val.split(',')
         # sga.add(val[1])
-        src2dst.add((val[0],val[1]))
+
+        src,dst = val[0], val[1]
+        if src == src_tmp:
+            if flag == 'top1':
+                flag = 'nottop1'
+                if isclose(prob,prob_tmp) == True:
+                    src2dst.remove((src_tmp,dst_tmp))
+            src_tmp,dst_tmp = src,dst
+            prob_tmp = prob
+        else:
+            src_tmp,dst_tmp = src,dst
+            prob_tmp = prob
+            flag = 'top1'
+            src2dst.add((src_tmp,dst_tmp))
+            #src2dst.append((val[0],val[1]))
         #print val
-        print type(prob),val
-    print 'len(src2dst_all) = {}'.format(len(src2dst))
+        #print prob,val
+    print src2dst
+    print 'len(src2dst) = {}'.format(len(src2dst))
     return src2dst
 
 if __name__ == '__main__':
