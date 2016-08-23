@@ -12,37 +12,50 @@ def predict(path, pos_start):
     print 'reading from: {}...'.format(path)
     src2dst = set()
     #src2dst = []
+    src_tmp,dst_tmp = 'src_tmp','dst_tmp'
     prob_tmp = 0.0
-    src_tmp = 'helloworld1'
-    dst_tmp = 'helloworld2'
-    flag = 'nottop1'
+    flag = '0'
     for line in open(path, 'r'):
         values = line.strip().split('\t')
         #print values
-        if '#' in values[0]: continue
+        if '#' in values[0]:
+            flag = '1'
+            continue
         prob = values[1]
-        prob = float(prob)
         val = values[-1][:-1]
         val = val[pos_start:-1]
         val = val.split(',')
-        # sga.add(val[1])
-
         src,dst = val[0], val[1]
-        if src == src_tmp:
-            if flag == 'top1':
-                flag = 'nottop1'
-                if isclose(prob,prob_tmp) == True:
-                    src2dst.remove((src_tmp,dst_tmp))
-            src_tmp,dst_tmp = src,dst
-            prob_tmp = prob
-        else:
-            src_tmp,dst_tmp = src,dst
-            prob_tmp = prob
-            flag = 'top1'
-            src2dst.add((src_tmp,dst_tmp))
-            #src2dst.append((val[0],val[1]))
-        #print val
-        #print prob,val
+        prob = float(prob)
+
+        if flag == '1':
+            src_tmp,dst_tmp,prob_tmp = src,dst,prob
+            src2dst.add((src,dst))
+            flag = '2'
+        elif flag == '2': # possiblity1: a new src; possibility2: continued src
+            # obviously, src == src_tmp:
+            if isclose(prob, prob_tmp):
+                src2dst.remove((src_tmp,dst_tmp))
+            # else:
+            # do nothing
+            flag = '3'
+        elif flag == '3':
+            continue
+        # if src == src_tmp:
+        #     if flag == 'top1':
+        #         flag = 'nottop1'
+        #         if isclose(prob,prob_tmp) == True:
+        #             src2dst.remove((src_tmp,dst_tmp))
+        #     src_tmp,dst_tmp = src,dst
+        #     prob_tmp = prob
+        # else:
+        #     src_tmp,dst_tmp = src,dst
+        #     prob_tmp = prob
+        #     flag = 'top1'
+        #     src2dst.add((src_tmp,dst_tmp))
+        #     #src2dst.append((val[0],val[1]))
+        # #print val
+        # #print prob,val
     print src2dst
     print 'len(src2dst) = {}'.format(len(src2dst))
     return src2dst
