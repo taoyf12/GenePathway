@@ -5,21 +5,21 @@ import os
 import random
 import argparse
 
-def isclose(a, b, rel_tol=1e-3):
+def isclose(a, b, rel_tol=1e-6):
     return (abs(a-b) <= rel_tol)
 
-def predict(path, pos_start):
+def predict(path, pos_start, k):
     print 'reading from: {}...'.format(path)
     src2dst = set()
     #src2dst = []
     src_tmp,dst_tmp = 'src_tmp','dst_tmp'
     prob_tmp = 0.0
-    flag = '0'
+    flag = 0
     for line in open(path, 'r'):
         values = line.strip().split('\t')
         #print values
         if '#' in values[0]:
-            flag = '1'
+            flag = 1
             continue
         prob = values[1]
         val = values[-1][:-1]
@@ -28,32 +28,19 @@ def predict(path, pos_start):
         src,dst = val[0], val[1]
         prob = float(prob)
 
-        if flag == '1':
+        T = k+1
+        if flag == 1:
             src_tmp,dst_tmp,prob_tmp = src,dst,prob
             src2dst.add((src,dst))
-            flag = '2'
-        # elif flag == '2': # possiblity1: a new src; possibility2: continued src
-        #     # obviously, src == src_tmp:
-        #     src_tmp,dst_tmp,prob_tmp = src,dst,prob
-        #     src2dst.add((src,dst))
-        #     # else:
-        #     # do nothing
-        #     flag = '3'
-        # elif flag == '3': # possiblity1: a new src; possibility2: continued src
-        #     # obviously, src == src_tmp:
-        #     src_tmp,dst_tmp,prob_tmp = src,dst,prob
-        #     src2dst.add((src,dst))
-        #     # else:
-        #     # do nothing
-        #     flag = '4'
-        elif flag == '2': # possiblity1: a new src; possibility2: continued src
+            flag = flag + 1
+        elif flag <= T-1: # possiblity1: a new src; possibility2: continued src
             # obviously, src == src_tmp:
-            if isclose(prob, prob_tmp):
-                src2dst.remove((src_tmp,dst_tmp))
+            src_tmp,dst_tmp,prob_tmp = src,dst,prob
+            src2dst.add((src,dst))
             # else:
             # do nothing
-            flag = '3'
-        elif flag == '3':
+            flag = flag + 1
+        elif flag == T:
             continue
     # print src2dst
     print 'len(src2dst) = {}'.format(len(src2dst))
@@ -74,10 +61,15 @@ def readtruth(path):
 
 if __name__ == '__main__':
     
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--k', help = 'k', type = int, default = 1)
+    args = parser.parse_args()
+
     dest = '../pathway_forw_patient'
     relation = 'pathTo'
     pos_start = len(relation) + 1
-    pred = predict(dest+'/pathway_ground/remain.solutions.txt', pos_start)
+    pred = predict(dest+'/pathway_ground/remain.solutions.txt', pos_start,args.k)
 
     truth = readtruth(dest+'/pathway_origin/sga2deg_remain')
 
