@@ -36,6 +36,17 @@ def readsrc2dst(path):
         src2dst.add((values[0],values[1]))
     return src2dst
 
+def save2txt(path, table):
+    '''
+    path: the filename to be saved.
+    table: list of string list / set of tuples, data to be saved.
+    '''
+    print 'saving to {}...'.format(path)
+    f = open(path, 'w')
+    for row in table:
+        print >> f, '\t'.join(row)
+    f.close()
+
 def save2txt_list(path, table):
     '''
     path: the filename to be saved.
@@ -47,7 +58,7 @@ def save2txt_list(path, table):
         print >> f, row
     f.close()
 
-def extract_ground_in(path_solution, path_src2dst, path_out, relation, is_train, path_label=None, label_notation=None):
+def extract_ground_in(path_solution, path_src2dst, path_out, relation, path_src2dst_out, is_train, path_label=None, label_notation=None):
     '''
     extract grounded positive solutions.
     path_solution: *.solutions.txt file, contains grounded examples.
@@ -65,6 +76,8 @@ def extract_ground_in(path_solution, path_src2dst, path_out, relation, is_train,
     src2dst = readsrc2dst(path_src2dst)
     # positive grounded examples.
     src2dst = src2dst.intersection(src2dst_all)
+
+    save2txt(path_src2dst_out,src2dst)
 
     dst_corpus = set()
     for pair in src2dst:
@@ -133,13 +146,13 @@ if __name__ == '__main__':
         dest = '../pathway_forw_patient'
         src_train,dst_train,src2dst_train = extract_ground_in(dest+'/pathway_origin/train.solutions.txt', \
             dest+'/pathway_origin/sga2deg_train', dest+'/pathway_ground/train.examples', 'pathTo', \
-            True, dest+'/pathway_ground/labels.cfacts', 'isDEG')
+            dest+'/pathway_ground/sga2deg_train', True, dest+'/pathway_ground/labels.cfacts', 'isDEG')
         src_test,dst_test,src2dst_test = extract_ground_in(dest+'/pathway_origin/test.solutions.txt', \
             dest+'/pathway_origin/sga2deg_test', dest+'/pathway_ground/test.examples', 'pathTo', \
-            False)
+            dest+'/pathway_ground/sga2deg_test', False)
         src_remain,dst_remain,src2dst_remain = extract_ground_in(dest+'/pathway_origin/remain.solutions.txt', \
             dest+'/pathway_origin/sga2deg_remain', dest+'/pathway_ground/remain.examples', 'pathTo', \
-            False)
+            dest+'/pathway_ground/sga2deg_remain', False)
         show_intersection('size of sga corpus:', src_train, src_test, src_remain)
         show_intersection('size of deg corpus:', dst_train, dst_test, dst_remain)
         show_intersection('size of sga2deg:', src2dst_train, src2dst_test, src2dst_remain)
@@ -148,13 +161,13 @@ if __name__ == '__main__':
         dest = '../pathway_bakw_patient'
         src_train,dst_train,src2dst_train = extract_ground_in(dest+'/pathway_origin/train.solutions.txt', \
             dest+'/pathway_origin/deg2sga_train', dest+'/pathway_ground/train.examples', 'pathFrom', \
-            True, dest+'/pathway_ground/labels.cfacts', 'isSGA')
+            dest+'/pathway_ground/deg2sga_train', True, dest+'/pathway_ground/labels.cfacts', 'isSGA')
         src_test,dst_test,src2dst_test = extract_ground_in(dest+'/pathway_origin/test.solutions.txt', \
             dest+'/pathway_origin/deg2sga_test', dest+'/pathway_ground/test.examples', 'pathFrom', \
-            False)
+            dest+'/pathway_ground/deg2sga_test', False)
         src_remain,dst_remain,src2dst_remain = extract_ground_in(dest+'/pathway_origin/remain.solutions.txt', \
             dest+'/pathway_origin/deg2sga_remain', dest+'/pathway_ground/remain.examples', 'pathFrom', \
-            False)
+            dest+'/pathway_ground/deg2sga_remain', False)
         show_intersection('size of deg corpus:', src_train, src_test, src_remain)
         show_intersection('size of sga corpus:', dst_train, dst_test, dst_remain)
         show_intersection('size of deg2sga:', src2dst_train, src2dst_test, src2dst_remain)
