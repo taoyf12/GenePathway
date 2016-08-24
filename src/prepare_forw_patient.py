@@ -6,7 +6,7 @@ import io
 import os
 import random
 
-def readTDI_tuple(path, pos_patient, pos_sga, pos_deg):
+def readTDI_tuple(path, pos_patient, pos_sga, pos_deg, pos_prob):
     '''
     Collect all the (patient_id, sgaid, degid) tuples.
     path: dir of .sql file.
@@ -25,8 +25,8 @@ def readTDI_tuple(path, pos_patient, pos_sga, pos_deg):
             for val in values:
                 row = val.split(',')
                 if row[pos_sga] != 'NULL':
-                    sga2deg.append((int(row[pos_patient]),row[pos_sga],row[pos_deg]))
-    print 'len(patid2sgaid2degid) = {}'.format(len(sga2deg))
+                    sga2deg.append((int(row[pos_patient]),row[pos_sga],row[pos_deg],row[pos_prob]))
+    print 'len(patid2sgaid2degid2prob) = {}'.format(len(sga2deg))
     return sga2deg
 
 def readSQL(path, pos_src, pos_dist):
@@ -141,8 +141,6 @@ if __name__ == '__main__':
         os.makedirs(dest+'/pathway_origin')
         os.makedirs(dest+'/pathway_ground')
 
-
-
     # Extract (sga, deg) pairs from dumped .sql file.
     # Randomly generate train, test and remain set.
     NUM_PAT = 4468
@@ -165,26 +163,23 @@ if __name__ == '__main__':
     path_deg = '../TDI_dump/DEGs.sql'
     path_gen = '../TDI_dump/Genes.sql'
 
-    patid2sgaid2degid = readTDI_tuple(path_tdi,1,2,4)
+    patid2sgaid2degid2prob = readTDI_tuple(path_tdi,1,2,4,5)
     sgaid2genid = readSQL(path_sga,0,2)
     degid2genid = readSQL(path_deg,0,2)
     genid2gen = readSQL(path_gen,0,1)
 
-
-
     # prepare the files required by ProPPR.
     # pathway.graph
-    path_pathway = '../TDI_dump/pathway.cfacts'
-    corpus, pathway = buildPathway(path_pathway)
-    path_pathway_out = dest+'/pathway_origin/pathway.graph'
-    save2txt(path_pathway_out, pathway)
+    # path_pathway = '../TDI_dump/pathway.cfacts'
+    # corpus, pathway = buildPathway(path_pathway)
+
+
+
     # labels.cfacts
     deg_corpus = set()
     for _, genid in degid2genid.iteritems():
         gene = genid2gen[genid][1:-1].lower()
-        if gene in corpus:
-            deg_corpus.add(gene)
-        #genid2gen = readSQL(path_gen,0,1)
+        deg_corpus.add(gene)
 
     path_label = dest+'/pathway_origin/labels.cfacts'
     print 'saving to {}...'.format(path_label)
@@ -196,15 +191,17 @@ if __name__ == '__main__':
 
 
     print 'mapping from ids to genes...'
-    sga2deg_train = set()
-    sga2deg_test = set()
-    sga2deg_remain = set()
+    sga2deg_train = dd(float)
+    sga2deg_test = dd(float)
+    sga2deg_remain = dd(float)
     # need to be included in the graph, if used.
     # sga2deg = set()
-    for row in patid2sgaid2degid:
+    for row in patid2sgaid2degid2prob:
         patid = row[0]
         sgaid_tmp = sgaid2genid[row[1]]
         degid_tmp = degid2genid[row[2]]
+        prob = float(row[3])
+        #print type(prob)
         #print patid
         # sga is unit, no corresponding genid.
         if sgaid_tmp == 'NULL': continue
@@ -218,44 +215,48 @@ if __name__ == '__main__':
         if sga != deg:
             # sga2deg.add((sga,deg))
             if patid in patid_train:
-                sga2deg_train.add((sga,deg))
+                sga2deg_train[(sga,deg)] += prob
             elif patid in patid_test:
-                sga2deg_test.add((sga,deg))
+                sga2deg_test[(sga,deg)] += prob
             else: # elif patid in patid_remain:
-                sga2deg_remain.add((sga,deg))
+                sga2deg_remain[(sga,deg)] += prob
+
 
 
     # (sga,deg) pairs within the pathway.graph
     sga2deg_out_train = set()
     sga2deg_out_test = set()
-    sga2deg_out_remain = set()    
-    for values in sga2deg_train:
+    pathway = []
+    # TODO: we may consier prob during training.
+    for values in sga2deg_train.keys():
         genex = values[0]
         geney = values[1]
-        if (genex in corpus) and (geney in corpus):
+        # if (genex in corpus) and (geney in corpus):
             # genex and geney won't be same, we have examined it before.
-            sga2deg_out_train.add((genex,geney))
-    for values in sga2deg_test:
+        sga2deg_out_train.add((genex,geney))
+    for values in sga2deg_test.keys():
         genex = values[0]
         geney = values[1]
-        if (genex in corpus) and (geney in corpus):
-            sga2deg_out_test.add((genex,geney))
-    for values in sga2deg_remain:
+        # if (genex in corpus) and (geney in corpus):
+        sga2deg_out_test.add((genex,geney))
+    for values in sga2deg_remain.keys():
         genex = values[0]
         geney = values[1]
-        if (genex in corpus) and (geney in corpus):
-            sga2deg_out_remain.add((genex,geney))
+        pathway.append(['leadTo',genex,geney,sga2deg_remain[values]])
+        #if (genex in corpus) and (geney in corpus):
+        #    sga2deg_out_remain.add((genex,geney))
+
+    path_pathway_out = dest+'/pathway_origin/pathway.graph'
+    save2txt(path_pathway_out, pathway)
+
 
     sga2deg_train = sga2deg_out_train
     sga2deg_test = sga2deg_out_test
-    sga2deg_remain = sga2deg_out_remain
 
     path_sga2deg = dest+'/pathway_origin/sga2deg_train'
     save2txt(path_sga2deg,sga2deg_train)
     path_sga2deg = dest+'/pathway_origin/sga2deg_test'
     save2txt(path_sga2deg,sga2deg_test)
-    path_sga2deg = dest+'/pathway_origin/sga2deg_remain'
-    save2txt(path_sga2deg,sga2deg_remain)
 
     print 'len(sga2deg_train) = {}'.format(len(sga2deg_train))
     print 'len(sga2deg_test) = {}'.format(len(sga2deg_test))
@@ -264,7 +265,6 @@ if __name__ == '__main__':
 
     sga2deg_list_train = dd(list)
     sga2deg_list_test = dd(list)
-    sga2deg_list_remain = dd(list)
     for line in sga2deg_train:
         sga = line[0]
         deg = line[1]
@@ -273,14 +273,10 @@ if __name__ == '__main__':
         sga = line[0]
         deg = line[1]
         sga2deg_list_test[sga].append(deg)
-    for line in sga2deg_remain:
-        sga = line[0]
-        deg = line[1]
-        sga2deg_list_remain[sga].append(deg)
 
     writeSample(dest+'/pathway_origin', 'train.examples', sga2deg_list_train, deg_corpus)
     writeSample(dest+'/pathway_origin', 'test.examples', sga2deg_list_test, deg_corpus)
-    writeSample(dest+'/pathway_origin', 'remain.examples', sga2deg_list_remain, deg_corpus)
+
 
     print 'Done!'
     # Q.E.D.
