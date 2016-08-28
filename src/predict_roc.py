@@ -68,7 +68,7 @@ def save2txt(path, table):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--k', help = 'k', type = int, default = 1)
+    parser.add_argument('--filename', help = 'roc_1e-5', type = int, default = 'roc_1e-5')
     args = parser.parse_args()
 
     print 'evaluating...'
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     relation = 'pathTo'
     pos_start = len(relation) + 1
 
-    KSet = [1,2,3,4,5,10,20,50,100,200,500,1000]
+    KSet = [1,2,3,4,5,10,20,50,100,200,500,1000,2000,4000,8000]
 
     roc = list()
     for k in KSet:
@@ -99,9 +99,9 @@ if __name__ == '__main__':
         recall = 1.0*len(pred.intersection(truth))/len(truth)
 
         print '{}\t{}\t{}'.format(k,precision,recall)
-        roc.append((k,precision,recall))
+        roc.append((str(k),str(precision),str(recall)))
 
-    path_roc = root+'/src/roc.txt'
+    path_roc = root+'/src/'+'roc_1e-5'
     save2txt(path_roc,roc)
     print 'Done!'
     # Q.E.D.
