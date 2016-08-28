@@ -84,7 +84,7 @@ def n2exp(path_n_one,path_w_one):
     sga2deg = list()
     for line in open(path_n_one, 'r'):
         values = line.strip().split('\t')
-        sga,deg,prob = values[1],values[2],values[3]
+        sga,deg,prob = values[1],values[2],float(values[3])
         sga2deg.append(('leadTo',sga,deg,str(prob*prob*prob)))
 
     print 'saving to {}...'.format(path_w_one)
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     path_n_one = dest+'/pathway_origin/pathway.graph'
     path_w_exp = dest+'/pathway_origin/pathwaye.graph'
 
-    n2exp(path_n_one,path_w_one)
+    n2exp(path_n_one,path_w_exp)
 
     print 'Done!'
     # Q.E.D.
