@@ -5,9 +5,6 @@ import os
 import random
 import argparse
 
-def isclose(a, b, rel_tol=1e-6):
-    return (abs(a-b) <= rel_tol)
-
 def predict(path, pos_start, k):
     print 'reading from: {}...'.format(path)
     src2dst = set()
@@ -50,9 +47,9 @@ def readtruth(path):
     truth = set()
     for line in open(path, 'r'):
         values = line.strip().split('\t')
-        src = values[0]
-        dst = values[1]
-        truth.add((values[0],values[1]))
+        src = values[1]
+        dst = values[2]
+        truth.add((src,dst))
     #print truth, len(truth)
     return truth
 
@@ -60,18 +57,27 @@ def readtruth(path):
 
 
 if __name__ == '__main__':
-    
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--k', help = 'k', type = int, default = 1)
     args = parser.parse_args()
 
-    dest = '../pathway_forw_patient'
+    print 'evaluating...'
+
+    root = '/usr1/public/yifeng/GenePathway'
+    dest = root+'/pathway_forw_patient'
+
     relation = 'pathTo'
     pos_start = len(relation) + 1
-    pred = predict(dest+'/pathway_ground/remain.solutions.txt', pos_start,args.k)
+    pred = predict(dest+'/pathway_origin/test.solutions.txt', pos_start,args.k)
 
-    truth = readtruth(dest+'/pathway_origin/sga2deg_remain')
+    truth = readtruth(dest+'/pathway_processed/pathway_prob.graph')
+
+    i = 0
+    for t in truth:
+        i += 1
+        if i <= 2:
+            print t
 
     precision = 1.0*len(pred.intersection(truth))/len(pred)
     recall = 1.0*len(pred.intersection(truth))/len(truth)
