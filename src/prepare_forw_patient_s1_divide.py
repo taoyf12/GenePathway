@@ -12,35 +12,6 @@ import random
 # especially for the patient-wised division of data.
 # prepare the data for our experiments.
 
-def get_sga2deg(path_sga2deg_all, path_sga2deg_train, patid_train):
-    print 'reading from: {}...'.format(path_sga2deg_all)
-    sga2deg = dd(float)
-    sga2deg_str = []
-    sga2deg_all_list = set()
-    sga_corpus = set()
-    deg_corpus = set()
-    for line in open(path_sga2deg_all, 'r'):
-        values = line.strip().split('\t')
-        patid,sga,deg,prob = int(values[0]),values[1],values[2],float(values[3])
-        sga2deg_all_list.add((sga,deg))
-        if patid not in patid_train: continue
-        sga2deg[(sga,deg)]+= prob
-        sga_corpus.add(sga)
-        deg_corpus.add(deg)
-        #sga2deg_str.append('\t'.join(values))
-
-    for row in sga2deg.keys():
-        sga2deg_str.append('leadTo'+'\t'+row[0]+'\t'+row[1]+'\t'+str(sga2deg[row]))
-
-    print 'saving to {}...'.format(path_sga2deg_train)
-    f = open(path_sga2deg_train,'w')
-    for row in sga2deg_str:
-        print >> f, row
-    f.close
-
-    sga2deg = sga2deg.keys()
-    return sga2deg,sga_corpus,deg_corpus,sga2deg_all_list
-
 def save2txt_list(path, table):
     '''
     path: the filename to be saved.
@@ -52,44 +23,6 @@ def save2txt_list(path, table):
         print >> f, row
     f.close()
     
-def writeSample(path, filename, sga2deglist, deg_corpus):
-    # print 'saving to {}...'.format(path+'/'+filename)
-    #i,j = 0,0
-    with io.open(path+'/tmp','w') as file:
-        for itr, sga in enumerate(sga2deglist):
-            if itr%1000 == 0:
-                print itr
-            deg = sga2deglist[sga]
-            file.write(u'pathTo(%s,Y)'%sga)
-            # TODO:
-            for gene in deg_corpus:
-                # TODO:
-                if gene in deg:
-                    file.write(u'\t+')
-                    #i += 1
-                else:
-                    file.write(u'\t-')
-                    #j += 1
-                file.write(u'pathTo(%s,%s)'%(sga,gene))
-            file.write(u'\n')
-
-    #print 'len(pos) = {}, len(neg) = {}'.format(i,j)
-
-    examples = []
-    for line in open(path+'/tmp', 'r'):
-        line = line.strip()
-        examples.append(line)
-
-    print 'len(samples) = {}'.format(len(examples))
-
-    SEED = 666
-    random.seed(SEED)
-    random.shuffle(examples)
-    os.remove(path+'/tmp');
-    path_out = path+'/'+filename
-    save2txt_list(path_out,examples)
-
-
 if __name__ == '__main__':
 
     print 'preparing training and test set...'
@@ -140,7 +73,7 @@ if __name__ == '__main__':
 
     for line in open(path_sga2deg_all, 'r'):
         count += 1
-        if count%100000 == 0:
+        if count%1000000 == 0:
             print count
         values = line.strip().split('\t')
         patid,sga,deg,prob = int(values[0]),values[1],values[2],float(values[3])
@@ -180,18 +113,18 @@ if __name__ == '__main__':
 
 
     print 'sga2deg_train\tsga2deg_test\tsga2deg_remain'
-    print '{}\t{}\t{}'.format(len(sga2deg_train.keys()),len(sga2deg_test.keys()),len(sga2deg_remain.keys()))
-    print '\t\t{}\t{}'.format(len(set(sga2deg_train.keys()).intersection(set(sga2deg_test.keys()))), \
+    print '{}\t\t{}\t\t{}'.format(len(sga2deg_train.keys()),len(sga2deg_test.keys()),len(sga2deg_remain.keys()))
+    print '\t\t{}\t\t{}'.format(len(set(sga2deg_train.keys()).intersection(set(sga2deg_test.keys()))), \
         len(set(sga2deg_train.keys()).intersection(set(sga2deg_remain.keys()))))
 
     print 'sga_train\tsga_test\tsga_remain'
-    print '{}\t{}\t{}'.format(len(sga_train_corpus),len(sga_test_corpus),len(sga_remain_corpus))
-    print '\t\t{}\t{}'.format(len(sga_train_corpus.intersection(sga_test_corpus)), \
+    print '{}\t\t{}\t\t{}'.format(len(sga_train_corpus),len(sga_test_corpus),len(sga_remain_corpus))
+    print '\t\t{}\t\t{}'.format(len(sga_train_corpus.intersection(sga_test_corpus)), \
         len(sga_train_corpus.intersection(sga_remain_corpus)))
 
     print 'deg_train\tdeg_test\tdeg_remain'
-    print '{}\t{}\t{}'.format(len(deg_train_corpus),len(deg_test_corpus),len(deg_remain_corpus))
-    print '\t\t{}\t{}'.format(len(deg_train_corpus.intersection(deg_test_corpus)), \
+    print '{}\t\t{}\t\t{}'.format(len(deg_train_corpus),len(deg_test_corpus),len(deg_remain_corpus))
+    print '\t\t{}\t\t{}'.format(len(deg_train_corpus.intersection(deg_test_corpus)), \
         len(deg_train_corpus.intersection(deg_remain_corpus)))
 
 
@@ -209,10 +142,6 @@ if __name__ == '__main__':
     f.close
 
 
-
-
-
-
     # get the labels.cfacts
     path_label = dest+'/pathway_origin/labels.cfacts'
     print 'saving to {}...'.format(path_label)
@@ -220,21 +149,5 @@ if __name__ == '__main__':
     for deg in deg_train_corpus:
         print >> f, 'isDEG\t'+deg
     f.close
-
-    # generate the testing set.
-
-
-    # sga2deg_all = dd(list)
-    # print 'len(sga2deg_all)={}'.format(len(sga2deg_all_list))
-
-    # for line in sga2deg_all_list:
-    #     sga = line[0]
-    #     deg = line[1]
-    #     sga2deg_all[sga].append(deg)
-
-    # writeSample(dest+'/pathway_origin', 'test.examples', sga2deg_all, deg_corpus)
-
-
-
     print 'Done!'
 # Q.E.D.
