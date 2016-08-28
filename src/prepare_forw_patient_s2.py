@@ -8,59 +8,17 @@ import random
 
 # prepare the data for our experiments.
 
-def readTDI_tuple(path, pos_patient, pos_sga, pos_deg, pos_prob):
-    '''
-    Collect all the (patient_id, sgaid, degid) tuples.
-    path: dir of .sql file.
-    pos_patient: position of patid.
-    pos_sga: position of sgaid.
-    pos_deg: position of degid.
-    '''
-    print 'reading from: {}...'.format(path)
-    sga2deg = []
-    for line in open(path, 'r'):
-        values = line.split('),(')
-        if 'INSERT INTO' in values[0]:
-            values[-1] = values[-1][:-3]
-            tmp = values[0].split('(')
-            values[0] = tmp[1]
-            for val in values:
-                row = val.split(',')
-                if row[pos_sga] != 'NULL':
-                    sga2deg.append((int(row[pos_patient]),row[pos_sga],row[pos_deg],row[pos_prob]))
-    print 'len(patid2sgaid2degid2prob) = {}'.format(len(sga2deg))
-    return sga2deg
-
-def readSQL(path, pos_src, pos_dist):
-    '''
-    Read LUT from .sql file.
-    src2dist: a dictionary
-    '''
-    print 'reading from: {}...'.format(path)
-    src2dist = {}
-    for line in open(path, 'r'):
-        values = line.split('),(')
-        if 'INSERT INTO' in values[0]:
-            # modify first and last string in list.
-            values[-1] = values[-1][:-3]
-            tmp = values[0].split('(')
-            values[0] = tmp[1]
-            for val in values:
-                row = val.split(',')
-                src2dist[row[pos_src]] = row[pos_dist]
-
-    print 'len = {}'.format(len(src2dist))
-    return src2dist
-
 def extract_sga2deg(path_sga2deg_all,path_sga2deg_train,thresh):
     print 'reading from: {}...'.format(path_sga2deg_all)
     sga2deg = []
     sga2deg_str = []
+    sga2deg_all_list = []
     sga_corpus = set()
     deg_corpus = set()
     for line in open(path_sga2deg_all, 'r'):
         values = line.strip().split('\t')
         sga,deg,prob = values[1],values[2],float(values[3])
+        sga2deg_all_list.append((sga,deg))
         if prob > thresh:
             sga2deg.append((sga,deg,prob))
             sga_corpus.add(sga)
@@ -72,18 +30,56 @@ def extract_sga2deg(path_sga2deg_all,path_sga2deg_train,thresh):
     for row in sga2deg_str:
         print >> f, row
     f.close
-    return sga2deg,sga_corpus,deg_corpus
+    return sga2deg,sga_corpus,deg_corpus,sga2deg_all_list
 
-def save2txt(path, table):
+def save2txt_list(path, table):
     '''
     path: the filename to be saved.
-    table: list of string list / set of tuples, data to be saved.
+    table: list/set of string, data to be saved.
     '''
     print 'saving to {}...'.format(path)
     f = open(path, 'w')
     for row in table:
-        print >> f, '\t'.join(row)
+        print >> f, row
     f.close()
+    
+def writeSample(path, filename, sga2deglist, deg_corpus):
+    # print 'saving to {}...'.format(path+'/'+filename)
+    #i,j = 0,0
+    with io.open(path+'/tmp','w') as file:
+        for itr, sga in enumerate(sga2deglist):
+            if itr%1000 == 0:
+                print itr
+            deg = sga2deglist[sga]
+            file.write(u'pathTo(%s,Y)'%sga)
+            # TODO:
+            for gene in deg_corpus:
+                # TODO:
+                if gene in deg:
+                    file.write(u'\t+')
+                    #i += 1
+                else:
+                    file.write(u'\t-')
+                    #j += 1
+                file.write(u'pathTo(%s,%s)'%(sga,gene))
+            file.write(u'\n')
+
+    #print 'len(pos) = {}, len(neg) = {}'.format(i,j)
+
+    examples = []
+    for line in open(path+'/tmp', 'r'):
+        line = line.strip()
+        examples.append(line)
+
+    print 'len(samples) = {}'.format(len(examples))
+
+    SEED = 666
+    random.seed(SEED)
+    random.shuffle(examples)
+    os.remove(path+'/tmp');
+    path_out = path+'/'+filename
+    save2txt_list(path_out,examples)
+
 
 if __name__ == '__main__':
 
@@ -93,78 +89,39 @@ if __name__ == '__main__':
     dest = root+'/pathway_forw_patient'
 
 
-    # Read raw data from dumped .sql files.
+    # get the training(?) edges.
 
     path_sga2deg_all = dest+'/pathway_processed/pathway_prob.graph'
     path_sga2deg_train = dest+'/pathway_origin/pathway.graph'
-    thresh = 0.8
-    sga2deg,sga_corpus,deg_corpus = extract_sga2deg(path_sga2deg_all,path_sga2deg_train,thresh)
+    thresh = 3
+    sga2deg,sga_corpus,deg_corpus,sga2deg_all_list = extract_sga2deg(path_sga2deg_all,path_sga2deg_train,thresh)
+    print 'sga2deg,sga,deg'
     print len(sga2deg),len(sga_corpus),len(deg_corpus)
+    print 1.0*len(sga2deg)/1496128,1.0*len(sga_corpus)/9829,1.0*len(deg_corpus)/5776
+
+
+    # get the labels.cfacts
+    path_label = dest+'/pathway_origin/labels.cfacts'
+    print 'saving to {}...'.format(path_label)
+    f = open(path_label,'w')
+    for deg in deg_corpus:
+        print >> f, 'isDEG\t'+deg
+    f.close
+
+    # generate the testing set.
+
+
+    sga2deg_all = dd(list)
+    print 'len(sga2deg_all)={}'.format(len(sga2deg_all_list))
+
+    for line in sga2deg_all_list:
+        sga = line[0]
+        deg = line[1]
+        sga2deg_all[sga].append(deg)
+
+    writeSample(dest+'/pathway_origin', 'test.examples', sga2deg_all, deg_corpus)
 
 
 
-
-
-
-
-
-
-    # # isDEG.cfacts
-    # deg_corpus = set()
-    # for _, genid in degid2genid.iteritems():
-    #     gene = genid2gen[genid][1:-1].lower()
-    #     deg_corpus.add(gene)
-
-    # path_deg = dest+'/pathway_processed/isDEG.cfacts'
-    # print 'saving to {}...'.format(path_deg)
-    # f = open(path_deg,'w')
-    # for gene in deg_corpus:
-    #     print >> f, 'isDEG\t'+gene
-    # f.close
-    # print 'len(deg) = {}'.format(len(deg_corpus))
-
-    # # isSGA.cfacts
-    # sga_corpus = set()
-    # for _, genid in sgaid2genid.iteritems():
-    #     if genid == 'NULL': continue
-    #     gene = genid2gen[genid][1:-1].lower()
-    #     sga_corpus.add(gene)
-
-    # path_sga = dest+'/pathway_processed/isSGA.cfacts'
-    # print 'saving to {}...'.format(path_sga)
-    # f = open(path_sga,'w')
-    # for gene in sga_corpus:
-    #     print >> f, 'isSGA\t'+gene
-    # f.close
-    # print 'len(sga) = {}'.format(len(sga_corpus))
-
-
-    # print 'mapping from ids to genes...'
-    # sga2deg_all = list()
-
-    # for row in patid2sgaid2degid2prob:
-    #     patid = row[0]
-    #     sgaid_tmp = sgaid2genid[row[1]]
-    #     degid_tmp = degid2genid[row[2]]
-    #     # prob = float(row[3])
-
-    #     # sga is unit, no corresponding genid.
-    #     if sgaid_tmp == 'NULL': continue
-    #     sga = genid2gen[sgaid_tmp]
-    #     deg = genid2gen[degid_tmp]
-    #     # normalize to lower case gene representation.
-    #     sga = sga[1:-1].lower()
-    #     deg = deg[1:-1].lower()
-
-    #     # TODO:
-    #     # sga and deg should be different.
-    #     if sga != deg:
-    #         sga2deg_all.append((patid,sga,deg,prob))
-
-
-    # path_sga2deg = dest+'/pathway_processed/pathway_pat_all.graph'
-    # save2txt(path_sga2deg, sga2deg_all)
-
-    # print 'len(sga2deg_all) = {}'.format(len(sga2deg_all))
     print 'Done!'
     # Q.E.D.
