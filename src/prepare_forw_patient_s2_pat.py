@@ -99,7 +99,7 @@ if __name__ == '__main__':
     # get the training(?) edgesself.
 
     path_sga2deg_all = dest+'/pathway_processed/pathway_pat_all.graph'
-    path_sga2deg_train = dest+'pathway_origin/pathway.graph'
+    path_sga2deg_train = dest+'/pathway_origin/pathway.graph'
 
 
     NUM_PAT = 4468
