@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
     path_sga2deg_all = dest+'/pathway_processed/pathway_prob.graph'
     path_sga2deg_train = dest+'/pathway_origin/pathway.graph'
-    thresh = 3
+    thresh = 7
     sga2deg,sga_corpus,deg_corpus,sga2deg_all_list = extract_sga2deg(path_sga2deg_all,path_sga2deg_train,thresh)
     print 'sga2deg,sga,deg'
     print len(sga2deg),len(sga_corpus),len(deg_corpus)
