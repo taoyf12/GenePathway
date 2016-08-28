@@ -54,7 +54,16 @@ def readtruth(path):
     return truth
 
 
-
+def save2txt(path, table):
+    '''
+    path: the filename to be saved.
+    table: list of string list / set of tuples, data to be saved.
+    '''
+    print 'saving to {}...'.format(path)
+    f = open(path, 'w')
+    for row in table:
+        print >> f, '\t'.join(row)
+    f.close()
 
 if __name__ == '__main__':
 
@@ -74,6 +83,7 @@ if __name__ == '__main__':
 
     KSet = [1,2,3,4,5,10,20,50,100,200,500,1000]
 
+    roc = list()
     for k in KSet:
         pred = predict(dest+'/pathway_origin/test.solutions.txt', pos_start,k)
 
@@ -89,19 +99,9 @@ if __name__ == '__main__':
         recall = 1.0*len(pred.intersection(truth))/len(truth)
 
         print '{}\t{}\t{}'.format(k,precision,recall)
-        #print len(pred.intersection(truth))
-    # src_train,dst_train,src2dst_train = extract_ground_in(dest+'/pathway_origin/train.solutions.txt', \
-    #     dest+'/pathway_origin/sga2deg_train', dest+'/pathway_ground/train.examples', 'pathTo', \
-    #     True, dest+'/pathway_ground/labels.cfacts', 'isDEG')
-    # src_test,dst_test,src2dst_test = extract_ground_in(dest+'/pathway_origin/test.solutions.txt', \
-    #     dest+'/pathway_origin/sga2deg_test', dest+'/pathway_ground/test.examples', 'pathTo', \
-    #     False)
-    # src_remain,dst_remain,src2dst_remain = extract_ground_in(dest+'/pathway_origin/remain.solutions.txt', \
-    #     dest+'/pathway_origin/sga2deg_remain', dest+'/pathway_ground/remain.examples', 'pathTo', \
-    #     False)
-    # show_intersection('size of sga corpus:', src_train, src_test, src_remain)
-    # show_intersection('size of deg corpus:', dst_train, dst_test, dst_remain)
-    # show_intersection('size of sga2deg:', src2dst_train, src2dst_test, src2dst_remain)
+        roc.append((k,precision,recall))
 
+    path_roc = root+'/src/roc.txt'
+    save2txt(path_roc,roc)
     print 'Done!'
     # Q.E.D.
