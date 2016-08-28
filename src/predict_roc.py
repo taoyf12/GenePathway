@@ -101,7 +101,7 @@ if __name__ == '__main__':
         print '{}\t{}\t{}'.format(k,precision,recall)
         roc.append((str(k),str(precision),str(recall)))
 
-    path_roc = root+'/src/'+'roc_1e-5'
+    path_roc = root+'/src/'+args.filename
     save2txt(path_roc,roc)
     print 'Done!'
     # Q.E.D.
