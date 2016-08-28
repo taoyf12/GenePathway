@@ -6,6 +6,9 @@ import io
 import os
 import random
 
+# 2016/08/28
+# prepare in a patient-wise manner.
+
 # check
 # extract real SGA corpus, DEG corpus.
 
@@ -56,6 +59,7 @@ if __name__ == '__main__':
 
 
     # Combine pathways.
+    # and save them.
     path_pathway = path_curt+'/pathway_pat_all.graph'
 
     sga2deg2prob,sga2deg2occr = readpathway(path_pathway)
@@ -72,6 +76,9 @@ if __name__ == '__main__':
     save2txt(path_prob,sga2deg2prob_list)
     save2txt(path_occr,sga2deg2occr_list)
 
+
+    # save to corpus
+    # and check the intersection and union of the sets.
     path_sga_all = path_curt+'/isSGA_all.cfacts'
     path_deg_all = path_curt+'/isDEG_all.cfacts'
 
@@ -103,6 +110,7 @@ if __name__ == '__main__':
         print >> f, 'isDEG\t'+gene
     f.close
     print 'len(deg) = {}'.format(len(deg_corpus))
+
 
 
     print len(sga_corpus.intersection(sga_corpus_all)), \
