@@ -5,6 +5,7 @@ from collections import defaultdict as dd
 import io
 import os
 import random
+import math
 
 # prepare the data for our experiments.
 
@@ -43,49 +44,13 @@ def save2txt_list(path, table):
         print >> f, row
     f.close()
     
-def writeSample(path, filename, sga2deglist, deg_corpus):
-    # print 'saving to {}...'.format(path+'/'+filename)
-    #i,j = 0,0
-    with io.open(path+'/tmp','w') as file:
-        for itr, sga in enumerate(sga2deglist):
-            if itr%1000 == 0:
-                print itr
-            deg = sga2deglist[sga]
-            file.write(u'pathTo(%s,Y)'%sga)
-            # TODO:
-            for gene in deg_corpus:
-                # TODO:
-                if gene in deg:
-                    file.write(u'\t+')
-                    #i += 1
-                else:
-                    file.write(u'\t-')
-                    #j += 1
-                file.write(u'pathTo(%s,%s)'%(sga,gene))
-            file.write(u'\n')
-
-    #print 'len(pos) = {}, len(neg) = {}'.format(i,j)
-
-    examples = []
-    for line in open(path+'/tmp', 'r'):
-        line = line.strip()
-        examples.append(line)
-
-    print 'len(samples) = {}'.format(len(examples))
-
-    SEED = 666
-    random.seed(SEED)
-    random.shuffle(examples)
-    os.remove(path+'/tmp');
-    path_out = path+'/'+filename
-    save2txt_list(path_out,examples)
 
 def n2exp(path_n_one,path_w_one):
     sga2deg = list()
     for line in open(path_n_one, 'r'):
         values = line.strip().split('\t')
         sga,deg,prob = values[1],values[2],float(values[3])
-        sga2deg.append(('leadTo',sga,deg,str(prob*prob*prob)))
+        sga2deg.append(('leadTo',sga,deg,str(math.sqrt(prob))))
 
     print 'saving to {}...'.format(path_w_one)
     f = open(path_w_one,'w')
@@ -105,7 +70,7 @@ if __name__ == '__main__':
     # get the training(?) edgesself.
 
     path_n_one = dest+'/pathway_origin/pathway.graph'
-    path_w_exp = dest+'/pathway_origin/pathwaye.graph'
+    path_w_exp = dest+'/pathway_origin/pathwayh.graph'
 
     n2exp(path_n_one,path_w_exp)
 
