@@ -84,6 +84,7 @@ if __name__ == '__main__':
     KSet = [1,2,3,4,5,10,20,50,100,200,500,1000,2000,4000,8000]
 
     roc = list()
+
     for k in KSet:
         pred = predict(dest+'/pathway_origin/remain.solutions.txt', pos_start,k)
 
@@ -96,10 +97,11 @@ if __name__ == '__main__':
 
         if len(pred_train) != 0:
             precision = 1.0*len(pred_train.intersection(remain_train))/len(pred_train)
-        else: precision = 1
+        else: precision = 0.0
         recall = 1.0*len(pred_train.intersection(remain_train))/len(remain_train)
 
-        print '{}\t{}\t{}'.format(k,precision,recall)
+        print '{}\t{}\t{}\tfull:\t{}\t{}'.format(k,precision,recall,\
+            1.0*len(pred.intersection(truth))/len(pred),1.0*len(pred.intersection(truth))/len(truth))
         roc.append((str(k),str(precision),str(recall)))
 
     path_roc = root+'/src/'+args.filename
