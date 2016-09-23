@@ -56,6 +56,8 @@ if __name__ == '__main__':
     sga2deg_test = dd(float)
     sga2deg_remain = dd(float)
 
+    sga2deg_remain_imp = dd(float)
+
     sga_train_corpus = set()
     deg_train_corpus = set()
     sga_test_corpus = set()
@@ -64,6 +66,9 @@ if __name__ == '__main__':
     deg_remain_corpus = set()
 
     count = 0
+
+    sga2pat = dd(set)
+    num_sga = dd(int)
 
     for line in open(path_sga2deg_all, 'r'):
         count += 1
@@ -83,8 +88,13 @@ if __name__ == '__main__':
             sga_remain_corpus.add(sga)
             deg_remain_corpus.add(deg)
             sga2deg_remain[(sga,deg)] += prob
+
+            sga2pat[sga].add(patid)
         else:
             print 'error!!!'
+
+    for k in sga2deg:
+        num_sga[k] = len(sga2deg[k])
 
     print 'saving to {}...'.format(path_sga2deg_train)
     f = open(path_sga2deg_train, 'w')
@@ -135,6 +145,16 @@ if __name__ == '__main__':
 
     f.close
 
+    # the weight which is adjusted based on occurence in patients.
+    path_graph_imp = dest+'/pathway_imp.graph'
+    print 'saving to {}...'.format(path_graph_imp)
+    f = open(path_graph_imp,'w')
+    for row in sga2deg_remain.keys():
+        # adjusted here.
+        sga,deg,prob = row[0],row[1],str(1.0*sga2deg_remain[row]/num_sga(row[0]))
+        print >> f, 'leadTo\t'+sga+'\t'+deg+'\t'+prob
+
+    f.close
 
     # get the labels.cfacts
     path_label = dest+'/labels.cfacts'
