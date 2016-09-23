@@ -1,125 +1,147 @@
-# Prepare date from raw data.
-# prepare_forw_patient.py: separate the train, test dataset, and produce graph
-# in a patient-wise manner.
+# generate in the way of weight(SGA -> DEG) = \sum (posterior prob) / Number_of_tumors_with_SGA
 from collections import defaultdict as dd
 import io
 import os
 import random
 
-# 2016/08/28
-# prepare in a patient-wise manner.
 
-# check
-# extract real SGA corpus, DEG corpus.
-
-def save2txt(path, table):
+def save2txt_list(path, table):
     '''
     path: the filename to be saved.
-    table: list of string list / set of tuples, data to be saved.
+    table: list/set of string, data to be saved.
     '''
     print 'saving to {}...'.format(path)
     f = open(path, 'w')
     for row in table:
-        print >> f, '\t'.join(row)
+        print >> f, row
     f.close()
-
-def readpathway(path_pathway):
-    print 'reading from: {}...'.format(path_pathway)
-    sga2deg2prob,sga2deg2occr = dd(float),dd(int)
-    for line in open(path_pathway, 'r'):
-        values = line.split('\t')
-        values[-1] = values[-1][:-1]
-        #print values
-        sga = values[1]
-        deg = values[2]
-        prob = float(values[3])
-        sga2deg2prob[('leadTo',sga,deg)] += prob
-        sga2deg2occr[('leadTo',sga,deg)] += 1
-    print 'len = {},{}'.format(len(sga2deg2prob),len(sga2deg2occr))
-    return sga2deg2prob,sga2deg2occr
-
-def readcorpus(path):
-    print 'reading from: {}...'.format(path)
-    corpus = set()
-    for line in open(path,'r'):
-        values = line.strip().split('\t')
-        #print values
-        corpus.add(values[1])
-    return corpus
-
-
+    
 
 if __name__ == '__main__':
 
-    print 'checking if corpus contain pathway...'
+    print 'preparing training and test set...'
 
     root = '/usr1/public/yifeng/GenePathway'
-    dest = root+'/pathway_forw_patient'
-    path_curt = dest+'/pathway_processed'
+    dest = root+'/pathway'
 
 
-    # Combine pathways.
-    # and save them.
-    path_pathway = path_curt+'/pathway_pat_all.graph'
+    # get the training(?) edgesself.
 
-    sga2deg2prob,sga2deg2occr = readpathway(path_pathway)
+    NUM_PAT = 4468
+    patid_list = range(1,NUM_PAT+1)
+    SEED = 888
+    random.seed(SEED)
+    random.shuffle(patid_list)
 
-    path_prob = path_curt+'/pathway_prob.graph'
-    path_occr = path_curt+'/pathway_occr.graph'
+    thresh1 = 0.1
+    thresh2 = 0.2
+    cut1 = int(thresh1*NUM_PAT)
+    cut2 = int(thresh2*NUM_PAT)
+    patid_train = patid_list[0:cut1]
+    patid_test = patid_list[cut1:cut2]
+    patid_remain = patid_list[cut2:]
 
-    sga2deg2prob_list,sga2deg2occr_list = list(),list()
-    for row in sga2deg2prob.keys():
-        sga2deg2prob_list.append([row[0],row[1],row[2],str(sga2deg2prob[row])])
-    for row in sga2deg2occr.keys():
-        sga2deg2occr_list.append([row[0],row[1],row[2],str(sga2deg2occr[row])])
+    # check
+    print len(patid_train),len(patid_test),len(patid_remain),len(patid_train)+len(patid_test)+len(patid_remain)
 
-    save2txt(path_prob,sga2deg2prob_list)
-    save2txt(path_occr,sga2deg2occr_list)
+    path_sga2deg_all = dest+'/pathway_processed/pathway_pat_all.graph'
+    path_sga2deg_train = dest+'/train'
+    path_sga2deg_test = dest+'/test'
+    path_sga2deg_remain = dest+'/remain'
 
 
-    # save to corpus
-    # and check the intersection and union of the sets.
-    path_sga_all = path_curt+'/isSGA_all.cfacts'
-    path_deg_all = path_curt+'/isDEG_all.cfacts'
+    print 'reading from: {}...'.format(path_sga2deg_all)
 
-    sga_corpus_all = readcorpus(path_sga_all)
-    deg_corpus_all = readcorpus(path_deg_all)
+    sga2deg_train = dd(float)
+    sga2deg_test = dd(float)
+    sga2deg_remain = dd(float)
 
-    path_sga = path_curt+'/isSGA.cfacts'
-    path_deg = path_curt+'/isDEG.cfacts'
+    sga_train_corpus = set()
+    deg_train_corpus = set()
+    sga_test_corpus = set()
+    deg_test_corpus = set()
+    sga_remain_corpus = set()
+    deg_remain_corpus = set()
 
-    sga_corpus = set()
-    deg_corpus = set()
+    count = 0
 
-    for row in sga2deg2occr.keys():
-        sga = row[1]
-        deg = row[2]
-        sga_corpus.add(sga)
-        deg_corpus.add(deg)
+    for line in open(path_sga2deg_all, 'r'):
+        count += 1
+        if count%1000000 == 0:
+            print count
+        values = line.strip().split('\t')
+        patid,sga,deg,prob = int(values[0]),values[1],values[2],float(values[3])
+        if patid in patid_train:
+            sga_train_corpus.add(sga)
+            deg_train_corpus.add(deg)
+            sga2deg_train[(sga,deg)] += prob
+        elif patid in patid_test:
+            sga_test_corpus.add(sga)
+            deg_test_corpus.add(deg)
+            sga2deg_test[(sga,deg)] += prob
+        elif patid in patid_remain:
+            sga_remain_corpus.add(sga)
+            deg_remain_corpus.add(deg)
+            sga2deg_remain[(sga,deg)] += prob
+        else:
+            print 'error!!!'
 
-    print 'saving to {}...'.format(path_sga)
-    f = open(path_sga,'w')
-    for gene in sga_corpus:
-        print >> f, 'isSGA\t'+gene
+    print 'saving to {}...'.format(path_sga2deg_train)
+    f = open(path_sga2deg_train, 'w')
+    for row in sga2deg_train.keys():
+        print >> f, row[0]+'\t'+row[1]+'\t'+str(sga2deg_train[row])
+    f.close()
+
+    print 'saving to {}...'.format(path_sga2deg_test)
+    f = open(path_sga2deg_test, 'w')
+    for row in sga2deg_test.keys():
+        print >> f, row[0]+'\t'+row[1]+'\t'+str(sga2deg_test[row])
+    f.close()
+
+    print 'saving to {}...'.format(path_sga2deg_remain)
+    f = open(path_sga2deg_remain, 'w')
+    for row in sga2deg_remain.keys():
+        print >> f, row[0]+'\t'+row[1]+'\t'+str(sga2deg_remain[row])
+    f.close()
+    # sga2deg,sga_corpus,deg_corpus,sga2deg_all_list = extract_sga2deg(path_sga2deg_all, path_sga2deg_train, patid_train)
+
+
+    print 'sga2deg_train\tsga2deg_test\tsga2deg_remain'
+    print '{}\t\t{}\t\t{}'.format(len(sga2deg_train.keys()),len(sga2deg_test.keys()),len(sga2deg_remain.keys()))
+    print '\t\t{}\t\t{}'.format(len(set(sga2deg_train.keys()).intersection(set(sga2deg_test.keys()))), \
+        len(set(sga2deg_train.keys()).intersection(set(sga2deg_remain.keys()))))
+
+    print 'sga_train\tsga_test\tsga_remain'
+    print '{}\t\t{}\t\t{}'.format(len(sga_train_corpus),len(sga_test_corpus),len(sga_remain_corpus))
+    print '\t\t{}\t\t{}'.format(len(sga_train_corpus.intersection(sga_test_corpus)), \
+        len(sga_train_corpus.intersection(sga_remain_corpus)))
+
+    print 'deg_train\tdeg_test\tdeg_remain'
+    print '{}\t\t{}\t\t{}'.format(len(deg_train_corpus),len(deg_test_corpus),len(deg_remain_corpus))
+    print '\t\t{}\t\t{}'.format(len(deg_train_corpus.intersection(deg_test_corpus)), \
+        len(deg_train_corpus.intersection(deg_remain_corpus)))
+
+
+
+    #print 1.0*len(sga2deg)/1496128,1.0*len(sga_corpus)/9829,1.0*len(deg_corpus)/5776
+
+
+    path_graph = dest+'/pathway.graph'
+    print 'saving to {}...'.format(path_graph)
+    f = open(path_graph,'w')
+    for row in sga2deg_remain.keys():
+        sga,deg,prob = row[0],row[1],str(sga2deg_remain[row])
+        print >> f, 'leadTo\t'+sga+'\t'+deg+'\t'+prob
+
     f.close
-    print 'len(sga) = {}'.format(len(sga_corpus))
 
-    print 'saving to {}...'.format(path_deg)
-    f = open(path_deg,'w')
-    for gene in deg_corpus:
-        print >> f, 'isDEG\t'+gene
+
+    # get the labels.cfacts
+    path_label = dest+'/labels.cfacts'
+    print 'saving to {}...'.format(path_label)
+    f = open(path_label,'w')
+    for deg in deg_train_corpus:
+        print >> f, 'isDEG\t'+deg
     f.close
-    print 'len(deg) = {}'.format(len(deg_corpus))
-
-
-
-    print len(sga_corpus.intersection(sga_corpus_all)), \
-    len(deg_corpus.intersection(deg_corpus_all))
-
-    print len(sga_corpus.intersection(deg_corpus)), \
-    len(sga_corpus.union(deg_corpus)), \
-    len(sga_corpus_all.intersection(deg_corpus_all)), \
-    len(sga_corpus_all.union(deg_corpus_all))
-
     print 'Done!'
-    # Q.E.D.
+# Q.E.D.
