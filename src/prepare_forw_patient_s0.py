@@ -1,16 +1,8 @@
-# Prepare date from raw data.
-# prepare_forw_patient.py: separate the train, test dataset, and produce graph
-# in a patient-wise manner.
+# generate in the way of weight(SGA -> DEG) = \sum (posterior prob) / Number_of_tumors_with_SGA
 from collections import defaultdict as dd
 import io
 import os
 import random
-
-# sga2deg_pat_all.graph:  tuples of (pat,SGA,DEG,prob) in different patients.
-# pathway_prob.graph:     tuples of (SGA,DEG,prob) united in all patients.
-# pathway_occr.graph:     tuples of (SGA,DEG,occr) united in all patients.
-# isDEG.cfacts:           facts from original dataset.
-# isSGA.cfacts:           facts from original dataset.
 
 def readTDI_tuple(path, pos_patient, pos_sga, pos_deg, pos_prob):
     '''
@@ -31,7 +23,7 @@ def readTDI_tuple(path, pos_patient, pos_sga, pos_deg, pos_prob):
             for val in values:
                 row = val.split(',')
                 if row[pos_sga] != 'NULL':
-                    sga2deg.append((int(row[pos_patient]),row[pos_sga],row[pos_deg],row[pos_prob]))
+                    sga2deg.append((row[pos_patient],row[pos_sga],row[pos_deg],row[pos_prob]))
     print 'len(patid2sgaid2degid2prob) = {}'.format(len(sga2deg))
     return sga2deg
 
@@ -72,11 +64,11 @@ if __name__ == '__main__':
     print 'extracting datasets in patient-wise manner...'
 
     root = '/usr1/public/yifeng/GenePathway'
-    dest = root+'/pathway_forw_patient'
+    dest = root+'/pathway'
     if not os.path.exists(dest):
         os.makedirs(dest)
-        os.makedirs(dest+'/pathway_origin')
-        os.makedirs(dest+'/pathway_ground')
+        #os.makedirs(dest+'/pathway_origin')
+        #os.makedirs(dest+'/pathway_ground')
         os.makedirs(dest+'/pathway_processed')
 
 
@@ -98,13 +90,13 @@ if __name__ == '__main__':
         gene = genid2gen[genid][1:-1].lower()
         deg_corpus.add(gene)
 
-    path_deg = dest+'/pathway_processed/isDEG.cfacts'
+    path_deg = dest+'/pathway_processed/isDEG_all.cfacts'
     print 'saving to {}...'.format(path_deg)
     f = open(path_deg,'w')
     for gene in deg_corpus:
         print >> f, 'isDEG\t'+gene
     f.close
-    print 'len(deg) = {}'.format(len(deg_corpus))
+    print 'len(deg_corpus) = {}'.format(len(deg_corpus))
 
     # isSGA.cfacts
     sga_corpus = set()
@@ -113,13 +105,13 @@ if __name__ == '__main__':
         gene = genid2gen[genid][1:-1].lower()
         sga_corpus.add(gene)
 
-    path_sga = dest+'/pathway_processed/isSGA.cfacts'
+    path_sga = dest+'/pathway_processed/isSGA_all.cfacts'
     print 'saving to {}...'.format(path_sga)
     f = open(path_sga,'w')
     for gene in sga_corpus:
         print >> f, 'isSGA\t'+gene
     f.close
-    print 'len(sga) = {}'.format(len(sga_corpus))
+    print 'len(sga_corpus) = {}'.format(len(sga_corpus))
 
 
     print 'mapping from ids to genes...'
@@ -149,5 +141,6 @@ if __name__ == '__main__':
     save2txt(path_sga2deg, sga2deg_all)
 
     print 'len(sga2deg_all) = {}'.format(len(sga2deg_all))
+
     print 'Done!'
     # Q.E.D.
