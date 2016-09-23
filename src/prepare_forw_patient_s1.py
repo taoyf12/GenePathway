@@ -93,8 +93,8 @@ if __name__ == '__main__':
         else:
             print 'error!!!'
 
-    for k in sga2deg:
-        num_sga[k] = len(sga2deg[k])
+    for k in sga2pat:
+        num_sga[k] = len(sga2pat[k])
 
     print 'saving to {}...'.format(path_sga2deg_train)
     f = open(path_sga2deg_train, 'w')
@@ -112,6 +112,14 @@ if __name__ == '__main__':
     f = open(path_sga2deg_remain, 'w')
     for row in sga2deg_remain.keys():
         print >> f, row[0]+'\t'+row[1]+'\t'+str(sga2deg_remain[row])
+    f.close()
+
+
+    path_sga2deg_remain_pat = dest+'/remain_pat'
+    print 'saving to {}...'.format(path_sga2deg_remain_pat)
+    f = open(path_sga2deg_remain_pat, 'w')
+    for row in sga2deg_remain.keys():
+        print >> f, row[0]+'\t'+row[1]+'\t'+str(1.0*sga2deg_remain[row]/num_sga[row[0]])
     f.close()
     # sga2deg,sga_corpus,deg_corpus,sga2deg_all_list = extract_sga2deg(path_sga2deg_all, path_sga2deg_train, patid_train)
 
@@ -151,7 +159,7 @@ if __name__ == '__main__':
     f = open(path_graph_imp,'w')
     for row in sga2deg_remain.keys():
         # adjusted here.
-        sga,deg,prob = row[0],row[1],str(1.0*sga2deg_remain[row]/num_sga(row[0]))
+        sga,deg,prob = row[0],row[1],str(1.0*sga2deg_remain[row]/num_sga[row[0]])
         print >> f, 'leadTo\t'+sga+'\t'+deg+'\t'+prob
 
     f.close
