@@ -1,0 +1,3 @@
+pathTo(a,Y)	+pathTo(a,c)
+pathTo(b,Y)	+pathTo(b,c)
+pathTo(c,Y)	+pathTo(c,d)

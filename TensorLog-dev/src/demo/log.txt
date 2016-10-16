@@ -1,0 +1,256 @@
+INFO:root:level is info
+INFO:root:adding cfacts file pathway.cfacts
+INFO:root:flushing 4 buffered facts for predicate dst
+INFO:root:flushing 2 buffered facts for predicate rule
+INFO:root:flushing 2 buffered facts for predicate isDEG
+INFO:root:flushing 2 buffered facts for predicate train
+INFO:root:flushing 3 buffered facts for predicate test
+INFO:root:flushing 3 buffered facts for predicate leadTo
+INFO:root:flushing 4 buffered facts for predicate src
+INFO:root:loading examples file train.exam
+INFO:root:loading 1 predicates from train.exam...
+INFO:root:loaded dataset has 1 modes and 4 non-zeros
+INFO:root:loading examples file test.exam
+INFO:root:loading 1 predicates from test.exam...
+INFO:root:loaded dataset has 1 modes and 6 non-zeros
+INFO:root:pool initialized with 28 processes
+INFO:root:created pool of 28 workers
+INFO:root:predicting for 1 miniBatches with the worker pool...
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:predictions for 1 miniBatches done
+INFO:root:predictions restacked
+INFO:root:predicting for 1 miniBatches with the worker pool...
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:predictions for 1 miniBatches done
+INFO:root:predictions restacked
+INFO:root:starting epoch 0
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:284: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if shuffledRowNums==None:
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 1
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 2
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 3
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 4
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 5
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 6
+INFO:root:created 1 minibatch tasks, total of 2 examples
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 7
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 8
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 9
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 10
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 11
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 12
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 13
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 14
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 15
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 16
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 17
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 18
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 19
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 20
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 21
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 22
+INFO:root:created 1 minibatch tasks, total of 2 examples
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 23
+INFO:root:created 1 minibatch tasks, total of 2 examples
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:starting epoch 24
+INFO:root:created 1 minibatch tasks, total of 2 examples
+INFO:root:gradients for 1 minibatch tasks computed
+INFO:root:gradients merged
+INFO:root:parameters broadcast to workers
+INFO:root:predicting for 1 miniBatches with the worker pool...
+INFO:root:predictions for 1 miniBatches done
+INFO:root:predictions restacked
+INFO:root:predicting for 1 miniBatches with the worker pool...
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:245: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if dm!=None:
+/usr1/public/yifeng/GenePathway/TensorLog-dev/src/mutil.py:205: FutureWarning: comparison to `None` will result in an elementwise object comparison in the future.
+  if denseResult!=None:
+INFO:root:predictions for 1 miniBatches done
+INFO:root:predictions restacked

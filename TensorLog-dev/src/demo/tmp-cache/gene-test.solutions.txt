@@ -1,0 +1,11 @@
+# proved 1	pathTo(a,X1).	999 msec
+1	0.561938654460787501	pathTo(a,c).
+2	0.438045409583828371	pathTo(a,d).
+3	0.000015935955383971	pathTo(a,__NULL__).
+# proved 2	pathTo(b,X1).	999 msec
+1	0.555161900116553197	pathTo(b,d).
+2	0.444825485401192267	pathTo(b,c).
+3	0.000012614482254604	pathTo(b,__NULL__).
+# proved 3	pathTo(c,X1).	999 msec
+1	0.999971645033158274	pathTo(c,d).
+2	0.000028354966841795	pathTo(c,__NULL__).

@@ -1,0 +1,9 @@
+pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneB),dst(GeneB),isDEG(GeneB).
+# add src(GeneA) somewhere.
+# {dst(GeneB)}.
+# pathTo(GeneA,GeneB) :- assign(GeneB,b),isDEG(GeneB) {dst(GeneB)}.
+# pathTo(GeneA,GeneB) :- assign(GeneB,c),isDEG(GeneB) {dst(GeneB)}.
+
+# leadTo(GeneA,GeneB),ab_leadTo(GeneA,GeneB),isDEG(GeneB) {f1}.
+pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneM),dst(GeneM),pathTo(GeneM,GeneB).
+# ab_leadTo(GeneA,GeneB) :- {dst(GeneB)}.

@@ -1,0 +1,27 @@
+leadTo	a	c	1
+leadTo	b	c	1
+leadTo	b	d	1
+leadTo	c	d	1
+
+isDEG	c
+isDEG	d
+
+train	a	d
+train	b	d
+
+test	a	c
+test	b	c
+test	c	d
+
+rule	f1
+rule	f2
+
+src	a
+src	b
+src	c
+src	d
+
+dst	a
+dst	b
+dst	c
+dst	d

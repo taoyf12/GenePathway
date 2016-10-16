@@ -1,0 +1,18 @@
+leadTo	a	b	3.60084
+leadTo	a	c	1.92742
+leadTo	b	c	8.86046
+leadTo	b	d	1.23118
+leadTo	c	d	0.80873
+
+isDEG	c
+isDEG	d
+
+train	b	c
+train	b	d
+
+test	a	c
+test	a	d
+test	c	d
+
+features	f1
+features	f2
