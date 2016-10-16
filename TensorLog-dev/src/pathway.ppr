@@ -1,0 +1,4 @@
+pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneB),src(GeneA),dst(GeneB),isDEG(GeneB) {f1}.
+pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneM),src(GeneA),dst(GeneM),pathTo(GeneM,GeneB) {f2}.
+# pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneM),src(GeneA),dst(GeneM),leadTo(GeneM,GeneB),src(GeneM),dst(GeneB),isDEG(GeneB) {f2}.
+# pathTo(GeneA,GeneC) :- leadTo(GeneA,GeneM),src(GeneA),dst(GeneM),leadTo(GeneM,GeneB),src(GeneM),dst(GeneB),leadTo(GeneB,GeneC),src(GeneB),dst(GeneC),isDEG(GeneC) {f3}.
