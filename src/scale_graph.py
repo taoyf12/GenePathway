@@ -5,6 +5,7 @@ from collections import defaultdict as dd
 import io
 import os
 import random
+import math
 
 def get_sga2deg(path_sga2deg_all, path_sga2deg_train, patid_train):
     print 'reading from: {}...'.format(path_sga2deg_all)
@@ -91,16 +92,23 @@ if __name__ == '__main__':
     root = '/usr1/public/yifeng/GenePathway'
     dest = root+'/pathway'
 
-    path_origin = dest+'/pathway_imp.graph'
+    path_origin = dest+'/pathway.graph'
 
-    path_scaled = dest+'/pathway_imp_scaled.graph'
+    path_scaled = dest+'/pathway_scaled.graph'
 
     graph = []
 
     print 'reading from: {}...'.format(path_origin)
     for line in open(path_origin, 'r'):
         values = line.strip().split('\t')
-        graph.append((values[0], values[1], values[2], str(float(values[3])*10)))
+        tmp = float(values[3])
+        tmp = math.log(tmp)
+        # tmp = float(values[3])/4
+        # if tmp >= 500:
+        #     print 'large'
+        #     tmp = 500
+        graph.append(( values[0], values[1], values[2], str(tmp) ))
+        # graph.append((values[0], values[1], values[2], str(float(values[3])*10)))
 
     print 'saving to {}...'.format(path_scaled)
     f = open(path_scaled, 'w')
