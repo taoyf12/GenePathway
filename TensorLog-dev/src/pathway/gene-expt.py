@@ -14,12 +14,20 @@ if __name__=="__main__":
     testData = tensorlog.parseDatasetSpec('test.exam',db)
     prog = tensorlog.parseProgSpec('pathway.ppr',db,proppr=True)
     prog.setRuleWeights()
-    # the parameters for feature?
+
+    # the parameters for feature
     prog.db.markAsParam('src',1)
     prog.db.markAsParam('dst',1)
-    # the depth of learning?
-    prog.maxDepth = 30
-    learner = plearn.ParallelFixedRateGDLearner(prog,regularizer=learn.L2Regularizer(),parallel=28,epochs=5,miniBatchSize=8,rate=0.01)
+
+    # the depth of learning
+    prog.maxDepth = 15
+    learner = plearn.ParallelFixedRateGDLearner(
+      prog,
+      regularizer=learn.L2Regularizer(),
+      parallel=28,
+      epochs=10,
+      miniBatchSize=8,
+      rate=0.01)
     params = {'prog':prog,
               'trainData':trainData, 'testData':testData,
               'targetMode':'pathTo/io',
