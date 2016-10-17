@@ -68,7 +68,7 @@ def save2txt(path, table):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--filename', help = 'name of output file', type = str, default = 'eps=1e-5')
+    parser.add_argument('--filename', help = 'name of output file', type = str, default = 'trial00')
     args = parser.parse_args()
 
     print 'evaluating...'
@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
     roc = list()
     for k in KSet:
-        pred = predict(root+'/TensorLog-dev/src/pathway/gene-test.solutions.30d.txt', pos_start,k)
+        pred = predict(root+'/TensorLog-dev/src/pathway/'+args.filename+'/tmp-cache/gene-test.solutions.txt', pos_start,k)
 
         truth = readtruth(dest+'/test')
 
