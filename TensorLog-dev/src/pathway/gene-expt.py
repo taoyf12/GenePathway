@@ -9,9 +9,9 @@ if __name__=="__main__":
     logging.basicConfig(level=logging.INFO)
     logging.info('level is info')
     
-    db = tensorlog.parseDBSpec('pathway.cfacts')
-    trainData = tensorlog.parseDatasetSpec('train.exam',db)
-    testData = tensorlog.parseDatasetSpec('test.exam',db)
+    db = tensorlog.parseDBSpec('pathway.db|pathway.cfacts')
+    trainData = tensorlog.parseDatasetSpec('train.dset|train.exam',db)
+    testData = tensorlog.parseDatasetSpec('test.dset|test.exam',db)
     prog = tensorlog.parseProgSpec('pathway.ppr',db,proppr=True)
     prog.setRuleWeights()
 
