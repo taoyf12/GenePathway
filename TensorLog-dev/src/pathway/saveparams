@@ -1,3 +1,5 @@
+echo 'save params...'
+
 echo 'params_0_rule' > params.out
 python -m list --db tmp-cache/gene-trained.db --mode rule/1 | sort -gr -k3 >> params.out
 
