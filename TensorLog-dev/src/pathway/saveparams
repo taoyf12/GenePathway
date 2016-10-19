@@ -1,0 +1,23 @@
+echo 'params_0_rule' > params.out
+python -m list --db tmp-cache/gene-trained.db --mode rule/1 | sort -gr -k3 >> params.out
+
+echo 'params_1_src' >> params.out
+python -m list --db tmp-cache/gene-trained.db --mode src/1 | sort -gr -k3 >> params.out
+
+echo 'params_2_dst' >> params.out
+python -m list --db tmp-cache/gene-trained.db --mode dst/1 | sort -gr -k3 >> params.out
+
+echo 'params_3_weighted' >> params.out
+python -m list --db tmp-cache/gene-trained.db --mode weighted/1 | sort -gr -k3 >> params.out
+
+echo 'params_4_isDEG' >> params.out
+python -m list --db tmp-cache/gene-trained.db --mode isDEG/1 | sort -gr -k3 >> params.out
+
+echo 'params_5_leadTo' >> params.out
+python -m list --db tmp-cache/gene-trained.db --mode leadTo/2 | sort -gr -k4 >> params.out
+
+echo 'params_6_train' >> params.out
+python -m list --db tmp-cache/gene-trained.db --mode train/2 | sort -gr -k4 >> params.out
+
+echo 'params_7_test' >> params.out
+python -m list --db tmp-cache/gene-trained.db --mode test/2 | sort -gr -k4 >> params.out
