@@ -1,0 +1,4 @@
+isSGA(idh1)
+driveCancer(idh1,Y)
+isSGA(negative_sample)
+driveCancer(negative_sample,Y)
