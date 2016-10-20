@@ -131,7 +131,7 @@ if __name__ == '__main__':
         gene = genid2gen[genid][1:-1].lower()
         deg_corpus.add(gene)
 
-    path_deg = dest+'/oncogene_processed/isDEG_all.cfacts'
+    path_deg = dest+'/isDEG.cfacts'
     print 'saving to {}...'.format(path_deg)
     f = open(path_deg,'w')
     for gene in deg_corpus:
@@ -146,7 +146,7 @@ if __name__ == '__main__':
         gene = genid2gen[genid][1:-1].lower()
         sga_corpus.add(gene)
 
-    path_sga = dest+'/oncogene_processed/isSGA_all.cfacts'
+    path_sga = dest+'/isSGA.cfacts'
     print 'saving to {}...'.format(path_sga)
     f = open(path_sga,'w')
     for gene in sga_corpus:
