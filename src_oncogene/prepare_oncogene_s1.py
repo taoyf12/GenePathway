@@ -26,12 +26,12 @@ if __name__ == '__main__':
         patid,sga,deg,prob = int(values[0]),values[1],values[2],float(values[3])
         sga2deg[(sga,deg)] += prob
 
-    path_graph = dest+'/drives.graph'
+    path_graph = dest+'/sga2deg.graph'
     print 'saving to {}...'.format(path_graph)
     f = open(path_graph,'w')
     for row in sga2deg.keys():
         sga,deg,prob = row[0],row[1],str(sga2deg[row])
-        print >> f, 'drives\t'+sga+'\t'+deg+'\t'+prob
+        print >> f, 'sga2deg\t'+sga+'\t'+deg+'\t'+prob
     f.close
 
     print 'Done!'
