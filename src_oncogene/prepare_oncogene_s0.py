@@ -47,6 +47,24 @@ def readSQL(path, pos_src, pos_dist):
     print 'len = {}'.format(len(src2dist))
     return src2dist
 
+def geneid2patid(path,pos_src,pos_dist):
+    print 'reading from: {}...'.format(path)
+    src2dist = dd(set)
+    for line in open(path, 'r'):
+        values = line.split('),(')
+        if 'INSERT INTO' in values[0]:
+            # modify first and last string in list.
+            values[-1] = values[-1][:-3]
+            tmp = values[0].split('(')
+            values[0] = tmp[1]
+            for val in values:
+                row = val.split(',')
+                src2dist[row[pos_src]].add(row[pos_dist])
+
+    print 'len = {}'.format(len(src2dist))
+    return src2dist
+
+
 def save2txt(path, table):
     '''
     path: the filename to be saved.
@@ -66,8 +84,7 @@ if __name__ == '__main__':
     dest = root+'/oncogene'
     if not os.path.exists(dest):
         os.makedirs(dest)
-        #os.makedirs(dest+'/pathway_origin')
-        #os.makedirs(dest+'/pathway_ground')
+    if not os.path.exists(dest+'/oncogene_processed'):
         os.makedirs(dest+'/oncogene_processed')
 
 
@@ -100,7 +117,7 @@ if __name__ == '__main__':
     print 'saving to {}...'.format(path_gotcancer)
     f = open(path_gotcancer,'w')
     for gotcancer in gotcancer_corpus:
-        print >> f, 'gotCancer\t'+gotcancer[0]+'\t'+gotcancer[1]
+        print >> f, 'gotCancer\tpat_'+gotcancer[0]+'\t'+gotcancer[1]
     f.close
     print 'len(gotcancer_corpus) = {}'.format(len(gotcancer_corpus))
 
@@ -167,6 +184,60 @@ if __name__ == '__main__':
     save2txt(path_sga2deg, sga2deg_all)
 
     print 'len(sga2deg_all) = {}'.format(len(sga2deg_all))
+
+
+    # Note: some SGA and DEG appear in a cancer/patient, but may not appear in the TDI result.
+    # Thus, the driveCancer(A,Y) :- isSGA(A),inPatient(A,X),gotCancer(X,Y). will not prove the power
+    # of TDI method.
+    # change of gene in patient.
+    sgageneidinpatient = dd(set)
+    deggeneidinpatient = dd(set)
+
+    path_sga = root+'/TDI_dump/SGAs.sql'
+    path_deg = root+'/TDI_dump/DEGs.sql'
+
+    sgageneid2patid = geneid2patid(path_sga,2,1)
+    deggeneid2patid = geneid2patid(path_deg,2,1)
+
+    sgainpatient = dd(set)
+    deginpatient = dd(set)
+
+    for sgageneid, patidset in sgageneid2patid.iteritems():
+        if sgageneid == 'NULL': continue
+        gene = genid2gen[sgageneid]
+        for patid in patidset:
+            sgainpatient[gene].add(patid)
+
+    for deggeneid, patidset in deggeneid2patid.iteritems():
+        if deggeneid == 'NULL': continue
+        gene = genid2gen[deggeneid]
+        for patid in patidset:
+            deginpatient[gene].add(patid)
+
+    # graph?
+    path_sgainpatient = dest+'/sgaInPatient.cfacts'
+    print 'saving to {}...'.format(path_sgainpatient)
+    f = open(path_sgainpatient,'w')
+    i = 0
+    for gene, patidset in sgainpatient.iteritems():
+        for patid in patidset:
+            i += 1
+            print >> f, 'sgaInPatient\t'+gene+'\tpat_'+patid
+    f.close
+    print 'len(sga) = {}, len(sgaInPatient) = {}'.format(len(sgainpatient),i)
+
+
+    path_deginpatient = dest+'/degInPatient.cfacts'
+    print 'saving to {}...'.format(path_deginpatient)
+    f = open(path_deginpatient,'w')
+    i = 0
+    for gene, patidset in deginpatient.iteritems():
+        for patid in patidset:
+            i += 1
+            print >> f, 'degInPatient\t'+gene+'\tpat_'+patid
+    f.close
+    print 'len(deg) = {}, len(degInPatient) = {}'.format(len(deginpatient),i)
+
 
     print 'Done!'
     # Q.E.D.
