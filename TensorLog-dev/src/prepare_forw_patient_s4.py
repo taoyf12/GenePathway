@@ -145,6 +145,7 @@ if __name__ == '__main__':
     print >> f, ''
     print >> f, 'rule\tf1'
     print >> f, 'rule\tf2'
+    print >> f, 'rule\tf3'
 
     print >> f, ''
     for gene in geneset:
