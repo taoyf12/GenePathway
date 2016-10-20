@@ -1,5 +1,6 @@
 isSGA(idh1)
-sga2deg(idh1,Y)
+shareChild(idh1,Y)
+# sga2deg(idh1,Y)
 # isSGA(negative_sample)
 # driveCancer(negative_sample,Y)
 # sga2deg(negative_sample,Y)

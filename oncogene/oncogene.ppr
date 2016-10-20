@@ -1,2 +1,2 @@
 driveCancer(A,Y) :- isSGA(A),sgaInPatient(A,P),gotCancer(P,Y).
-# sga2deg(A,Y) :- isDEG(Y),drives(A,Y).
+shareChild(A,Y) :- sga2deg(A,X),sga2deg(Y,X).
