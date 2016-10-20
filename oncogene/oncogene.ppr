@@ -1,0 +1,1 @@
+driveCancer(A,Y) :- isSGA(A),sgaInPatient(A,P),gotCancer(P,Y).
