@@ -205,12 +205,14 @@ if __name__ == '__main__':
     for sgageneid, patidset in sgageneid2patid.iteritems():
         if sgageneid == 'NULL': continue
         gene = genid2gen[sgageneid]
+        gene = gene[1:-1].lower()
         for patid in patidset:
             sgainpatient[gene].add(patid)
 
     for deggeneid, patidset in deggeneid2patid.iteritems():
         if deggeneid == 'NULL': continue
         gene = genid2gen[deggeneid]
+        gene = gene[1:-1].lower()
         for patid in patidset:
             deginpatient[gene].add(patid)
 
