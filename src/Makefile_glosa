@@ -1,0 +1,4 @@
+# Makefile_glosa
+python prepare_forw_patient_s0_glosa.py
+python prepare_forw_patient_s1_glosa.py
+python prepare_forw_patient_s2_glosa.py
