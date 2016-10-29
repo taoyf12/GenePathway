@@ -1,0 +1,5 @@
+# pathway_raw.ppr
+# simple recursive rules.
+
+pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneB),isDEG(GeneB).
+pathTo(GeneA,GeneB) :- leadTo(GeneA,GeneM),pathTo(GeneM,GeneB).
